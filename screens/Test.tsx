@@ -11,7 +11,7 @@ type Props = NativeStackScreenProps<StackParamList, "Test">;
 
 const Test = ({ navigation }: Props) => {
   return (
-    <View>
+    <View className=" bg-gray-400">
       <Text>test</Text>
 
       <Button
