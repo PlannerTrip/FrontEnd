@@ -1,23 +1,75 @@
-import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
+
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Test from "./screens/Test";
-import Test2 from "./screens/Test2";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-type StackParamList = {
-  Test: undefined;
-  Test2: undefined;
+import * as SecureStore from "expo-secure-store";
+
+import { useEffect, useState } from "react";
+
+// =================== screen ===================
+import Test from "./screens/Test";
+import SignIn from "./screens/SignIn";
+import SignUp from "./screens/SignUp";
+import Home from "./screens/Home";
+
+// =================== type ===================
+import { StackParamList, TabParamList } from "./interface/navigate";
+
+import axios from "axios";
+
+const Tab = () => {
+  const BaseTab = createBottomTabNavigator<TabParamList>();
+  return (
+    <BaseTab.Navigator screenOptions={{ headerShown: false }}>
+      <BaseTab.Screen name="home" component={Home} />
+    </BaseTab.Navigator>
+  );
 };
 
 export default function App() {
+  // =================== useEffect ===================
+  useEffect(() => {
+    authCheck();
+  }, []);
+
+  // =================== useState ===================
+  const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
+
   const Stack = createNativeStackNavigator<StackParamList>();
+
+  // =================== function ===================
+
+  const authCheck = async () => {
+    try {
+      const result = await SecureStore.getItemAsync("key");
+      const response = await axios.get("http://192.168.1.104:3000/authCheck", {
+        headers: {
+          authorization: result,
+        },
+      });
+      setIsSignedIn(true);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.log(error.response.data);
+      }
+    }
+  };
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Test2">
-        <Stack.Screen name="Test" component={Test} />
-        <Stack.Screen name="Test2" component={Test2} />
+      <Stack.Navigator>
+        {isSignedIn ? (
+          <>
+            <Stack.Screen name="tab" component={Tab} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="signIn" component={SignIn} />
+            <Stack.Screen name="signUp" component={SignUp} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
