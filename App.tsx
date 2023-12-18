@@ -17,6 +17,7 @@ import Home from "./screens/Home";
 // =================== type ===================
 import { StackParamList, TabParamList } from "./interface/navigate";
 
+import { API_URL } from "@env";
 import axios from "axios";
 
 const Tab = () => {
@@ -44,7 +45,7 @@ export default function App() {
   const authCheck = async () => {
     try {
       const result = await SecureStore.getItemAsync("key");
-      const response = await axios.get("http://192.168.1.104:3000/authCheck", {
+      const response = await axios.get(`${API_URL}/authCheck`, {
         headers: {
           authorization: result,
         },
