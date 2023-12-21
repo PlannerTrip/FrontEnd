@@ -19,12 +19,14 @@ import { StackParamList, TabParamList } from "./interface/navigate";
 
 import { API_URL } from "@env";
 import axios from "axios";
+import SocketTab from "./screens/SocketTab";
 
 const Tab = () => {
   const BaseTab = createBottomTabNavigator<TabParamList>();
   return (
     <BaseTab.Navigator screenOptions={{ headerShown: false }}>
       <BaseTab.Screen name="home" component={Home} />
+      <BaseTab.Screen name="socket" component={SocketTab} />
     </BaseTab.Navigator>
   );
 };
@@ -36,7 +38,7 @@ export default function App() {
   }, []);
 
   // =================== useState ===================
-  const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
+  const [isSignedIn, setIsSignedIn] = useState<Boolean>(true);
 
   const Stack = createNativeStackNavigator<StackParamList>();
 

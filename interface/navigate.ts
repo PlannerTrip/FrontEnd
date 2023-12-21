@@ -4,7 +4,7 @@ export type StackParamList = {
   signUp: undefined;
 };
 
-
 export type TabParamList = {
-    home : undefined
-}
+  home: undefined;
+  socket: undefined;
+};
