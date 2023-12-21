@@ -13,13 +13,15 @@ import Test from "./screens/Test";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
 import Home from "./screens/Home";
+import SocketTab from "./screens/SocketTab";
 
 // =================== type ===================
 import { StackParamList, TabParamList } from "./interface/navigate";
 
 import { API_URL } from "@env";
 import axios from "axios";
-import SocketTab from "./screens/SocketTab";
+
+import * as Linking from "expo-linking";
 
 const Tab = () => {
   const BaseTab = createBottomTabNavigator<TabParamList>();
@@ -31,7 +33,24 @@ const Tab = () => {
   );
 };
 
+const prefix = Linking.createURL("/");
+
 export default function App() {
+  console.log(prefix);
+  const config = {
+    screens: {
+      tab: {
+        screens: {
+          home: "home/:sort?",
+        },
+      },
+    },
+  };
+
+  const linking = {
+    prefixes: [prefix],
+    config,
+  };
   // =================== useEffect ===================
   useEffect(() => {
     authCheck();
@@ -61,7 +80,7 @@ export default function App() {
   };
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator>
         {isSignedIn ? (
           <>

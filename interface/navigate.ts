@@ -5,6 +5,6 @@ export type StackParamList = {
 };
 
 export type TabParamList = {
-  home: undefined;
+  home: { sort?: string };
   socket: undefined;
 };
