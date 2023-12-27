@@ -9,26 +9,76 @@ import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 
 // =================== screen ===================
-import Test from "./screens/Test";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
-import Home from "./screens/Home";
-import SocketTab from "./screens/SocketTab";
+import Achievement from "./screens/achievement";
+import Blog from "./screens/blog";
+import Discovery from "./screens/discovery";
+import Profile from "./screens/profile";
+import TripPlaner from "./screens/tripPlanner";
 
 // =================== type ===================
 import { StackParamList, TabParamList } from "./interface/navigate";
+
+// =================== Icon ===================
+
+import BlogIcon from "./assets/tabBar/blog.svg";
 
 import { API_URL } from "@env";
 import axios from "axios";
 
 import * as Linking from "expo-linking";
+import { Image } from "react-native";
+import { SvgUri } from "react-native-svg";
 
 const Tab = () => {
   const BaseTab = createBottomTabNavigator<TabParamList>();
   return (
-    <BaseTab.Navigator screenOptions={{ headerShown: false }}>
-      <BaseTab.Screen name="home" component={Home} />
-      <BaseTab.Screen name="socket" component={SocketTab} />
+    <BaseTab.Navigator
+      screenOptions={{ headerShown: false, tabBarActiveTintColor: "#FFC502" }}
+    >
+      <BaseTab.Screen
+        name="discovery"
+        component={Discovery}
+        options={{
+          tabBarLabel: "ไปเที่ยวกัน",
+          tabBarIcon: ({ color, size }) => <View></View>,
+        }}
+      />
+      <BaseTab.Screen
+        name="blog"
+        component={Blog}
+        options={{
+          tabBarLabel: "บล็อก",
+          tabBarIcon: ({ color, size }) => <View></View>,
+        }}
+      />
+      <BaseTab.Screen
+        name="tripPlanner"
+        component={TripPlaner}
+        options={{
+          tabBarLabel: "ทริปของฉัน",
+          tabBarIcon: ({ color, size }) => <View></View>,
+        }}
+      />
+      <BaseTab.Screen
+        name="achievement"
+        component={Achievement}
+        options={{
+          tabBarLabel: "ภารกิจ",
+          tabBarIcon: ({ color, size }) => (
+            <Image source={require("./assets/tabBar/achievement.png")} />
+          ),
+        }}
+      />
+      <BaseTab.Screen
+        name="profile"
+        component={Profile}
+        options={{
+          tabBarLabel: "ข้อมูลผู้ใช้",
+          tabBarIcon: ({ color, size }) => <View></View>,
+        }}
+      />
     </BaseTab.Navigator>
   );
 };
@@ -36,7 +86,7 @@ const Tab = () => {
 const prefix = Linking.createURL("/");
 
 export default function App() {
-  console.log(prefix);
+  // =================== deepLink ===================
   const config = {
     screens: {
       tab: {
@@ -81,7 +131,7 @@ export default function App() {
 
   return (
     <NavigationContainer linking={linking}>
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isSignedIn ? (
           <>
             <Stack.Screen name="tab" component={Tab} />

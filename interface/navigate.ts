@@ -5,6 +5,9 @@ export type StackParamList = {
 };
 
 export type TabParamList = {
-  home: { sort?: string };
-  socket: undefined;
+  achievement: undefined;
+  blog: undefined;
+  discovery: undefined;
+  profile: undefined;
+  tripPlanner: undefined;
 };

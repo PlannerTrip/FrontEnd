@@ -19,7 +19,7 @@ const Test = ({ navigation }: Props) => {
   };
 
   return (
-    <View className=" bg-gray-400">
+    <View className=" bg-gray-400 ">
       <Text>test</Text>
       <Animated.View
         style={{
