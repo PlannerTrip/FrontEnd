@@ -15,14 +15,21 @@ import Achievement from "./screens/achievement";
 import Blog from "./screens/blog";
 import Discovery from "./screens/discovery";
 import Profile from "./screens/profile";
-import TripPlaner from "./screens/tripPlanner";
+import TripPlanner from "./screens/tripPlanner";
 
 // =================== type ===================
 import { StackParamList, TabParamList } from "./interface/navigate";
 
 // =================== Icon ===================
 
-import BlogIcon from "./assets/tabBar/blog.svg";
+import UnActiveBlogIcon from "./assets/tabBar/blog.svg";
+import ActiveBlogIcon from "./assets/tabBar/activeBlog.svg";
+import UnActiveDiscovery from "./assets/tabBar/discovery.svg";
+import ActiveDiscovery from "./assets/tabBar/activeDiscovery.svg";
+import UnActiveProfile from "./assets/tabBar/profile.svg";
+import ActiveProfile from "./assets/tabBar/activeProfile.svg";
+import UnActiveTripPlanner from "./assets/tabBar/tripPlanner.svg";
+import ActiveTripPlaner from "./assets/tabBar/activeTripPlanner.svg";
 
 import { API_URL } from "@env";
 import axios from "axios";
@@ -35,48 +42,114 @@ const Tab = () => {
   const BaseTab = createBottomTabNavigator<TabParamList>();
   return (
     <BaseTab.Navigator
-      screenOptions={{ headerShown: false, tabBarActiveTintColor: "#FFC502" }}
+      screenOptions={{
+        tabBarStyle: {
+          height: 100,
+        },
+        tabBarIconStyle: { marginTop: 14 },
+
+        headerShown: false,
+      }}
     >
       <BaseTab.Screen
         name="discovery"
         component={Discovery}
         options={{
-          tabBarLabel: "ไปเที่ยวกัน",
-          tabBarIcon: ({ color, size }) => <View></View>,
+          tabBarLabel: ({ focused }) => (
+            <Text
+              className={`text-[12px] ${
+                focused
+                  ? "text-[#FFC502] font-extrabold"
+                  : "text-[#9898AA] font-normal"
+              }`}
+            >
+              ไปเที่ยวกัน
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? <ActiveDiscovery /> : <UnActiveDiscovery />,
         }}
       />
       <BaseTab.Screen
         name="blog"
         component={Blog}
-        options={{
-          tabBarLabel: "บล็อก",
-          tabBarIcon: ({ color, size }) => <View></View>,
-        }}
+        options={({ route }) => ({
+          tabBarLabel: ({ focused }) => (
+            <Text
+              className={`text-[12px] ${
+                focused
+                  ? "text-[#FFC502] font-extrabold"
+                  : "text-[#9898AA] font-normal"
+              }`}
+            >
+              บล็อก
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? <ActiveBlogIcon /> : <UnActiveBlogIcon />,
+        })}
       />
       <BaseTab.Screen
         name="tripPlanner"
-        component={TripPlaner}
+        component={TripPlanner}
         options={{
-          tabBarLabel: "ทริปของฉัน",
-          tabBarIcon: ({ color, size }) => <View></View>,
+          tabBarLabel: ({ focused }) => (
+            <Text
+              className={`text-[12px] ${
+                focused
+                  ? "text-[#FFC502] font-extrabold"
+                  : "text-[#9898AA] font-normal"
+              }`}
+            >
+              ทริปของฉัน
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? <ActiveTripPlaner /> : <UnActiveTripPlanner />,
         }}
       />
       <BaseTab.Screen
         name="achievement"
         component={Achievement}
         options={{
-          tabBarLabel: "ภารกิจ",
-          tabBarIcon: ({ color, size }) => (
-            <Image source={require("./assets/tabBar/achievement.png")} />
+          tabBarLabel: ({ focused }) => (
+            <Text
+              className={`text-[12px] ${
+                focused
+                  ? "text-[#FFC502] font-extrabold"
+                  : "text-[#9898AA] font-normal"
+              }`}
+            >
+              ภารกิจ
+            </Text>
           ),
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <Image
+                source={require("./assets/tabBar/activeAchievement.png")}
+              />
+            ) : (
+              <Image source={require("./assets/tabBar/achievement.png")} />
+            ),
         }}
       />
       <BaseTab.Screen
         name="profile"
         component={Profile}
         options={{
-          tabBarLabel: "ข้อมูลผู้ใช้",
-          tabBarIcon: ({ color, size }) => <View></View>,
+          tabBarLabel: ({ focused }) => (
+            <Text
+              className={`text-[12px] ${
+                focused
+                  ? "text-[#FFC502] font-extrabold"
+                  : "text-[#9898AA] font-normal"
+              }`}
+            >
+              ข้อมูลผู้ใช้
+            </Text>
+          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? <ActiveProfile /> : <UnActiveProfile />,
         }}
       />
     </BaseTab.Navigator>
