@@ -1,11 +1,8 @@
 export type StackParamList = {
   tab: undefined;
-  invitation: undefined;
+  invitation: { tripId?: string; inviteLink?: string };
   signIn: { setIsSignedIn: React.Dispatch<React.SetStateAction<Boolean>> };
   signUp: undefined;
-};
-
-export type TabParamList = {
   achievement: undefined;
   blog: undefined;
   discovery: undefined;
