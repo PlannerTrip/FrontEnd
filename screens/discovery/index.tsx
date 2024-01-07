@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -15,8 +15,20 @@ const Discovery = () => {
         paddingLeft: insets.left,
         paddingRight: insets.right,
       }}
+      className="bg-[#FCF8EF] "
     >
-      <Text>Discovery</Text>
+      <View className="h-[156px] bg-[#FCF8EF] p-[16px]   flex-col gap-[16px]">
+        <Text className="leading-[60px] text-[40px] font-bold">
+          ไปเที่ยวกันเถอะ{" "}
+        </Text>
+        <Pressable>
+          <View className="h-[48px] p-[12px] bg-[#FFC502] flex-row justify-center items-center rounded ">
+            <Text className="text-white text-[16px] font-bold ">
+              เริ่มจัดทริป
+            </Text>
+          </View>
+        </Pressable>
+      </View>
     </View>
   );
 };
