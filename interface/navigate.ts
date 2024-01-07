@@ -1,8 +1,9 @@
 export type StackParamList = {
     tab: undefined
-    signIn: undefined
-    signUp: undefined
+    invitation: undefined
     placeInformation: undefined
+    signIn: { setIsSignedIn: React.Dispatch<React.SetStateAction<Boolean>> }
+    signUp: undefined
 }
 
 export type TabParamList = {
