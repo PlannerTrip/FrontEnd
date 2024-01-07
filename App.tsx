@@ -208,36 +208,36 @@ export default function App() {
                 console.log(error.response.data)
             }
         }
-
-        return (
-            <NavigationContainer linking={linking}>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    {isSignedIn ? (
-                        <>
-                            <Stack.Screen name="tab" component={Tab} />
-                            <Stack.Screen
-                                name="invitation"
-                                component={Invitation}
-                            />
-                            <Stack.Screen
-                                name="placeInformation"
-                                component={PlaceInformation}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <Stack.Screen
-                                name="signIn"
-                                component={SignIn}
-                                initialParams={{ setIsSignedIn: setIsSignedIn }}
-                            />
-                            <Stack.Screen name="signUp" component={SignUp} />
-                        </>
-                    )}
-                </Stack.Navigator>
-            </NavigationContainer>
-        )
     }
+
+    return (
+        <NavigationContainer linking={linking}>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {isSignedIn ? (
+                    <>
+                        <Stack.Screen name="tab" component={Tab} />
+                        <Stack.Screen
+                            name="invitation"
+                            component={Invitation}
+                        />
+                        <Stack.Screen
+                            name="placeInformation"
+                            component={PlaceInformation}
+                        />
+                    </>
+                ) : (
+                    <>
+                        <Stack.Screen
+                            name="signIn"
+                            component={SignIn}
+                            initialParams={{ setIsSignedIn: setIsSignedIn }}
+                        />
+                        <Stack.Screen name="signUp" component={SignUp} />
+                    </>
+                )}
+            </Stack.Navigator>
+        </NavigationContainer>
+    )
 }
 
 const styles = StyleSheet.create({

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useCallback, useState } from "react"
 import { View, Text, Image } from "react-native"
 import {
     SafeAreaProvider,
@@ -15,12 +15,44 @@ import Pin from "../../assets/Pin.svg"
 import TelephoneActive from "../../assets/TelephoneActive.svg"
 import WebsiteActive from "../../assets/WebsiteActive.svg"
 
+import * as SecureStore from "expo-secure-store"
+import { API_URL } from "@env"
+import axios from "axios"
+import { useFocusEffect } from "@react-navigation/native"
+
 const PlaceInformation = () => {
     const insets = useSafeAreaInsets()
     console.log(insets)
 
     const marginTop = `mt-[-${insets.top}px]`
     const [placeName, setPlaceName] = useState("ชื่อสถานที่")
+
+    const getPlaceInformation = async () => {
+        try {
+            const result = await SecureStore.getItemAsync("key")
+            const response = await axios.get(`${API_URL}/place/information`, {
+                headers: {
+                    authorization: result,
+                },
+                params: {
+                    placeId: "P03025435",
+                    type: "ATTRACTION",
+                },
+            })
+            console.log(response.data)
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                console.log(error.response.data)
+            }
+        }
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            getPlaceInformation()
+        }, [])
+    )
+
     return (
         <View
             style={{
