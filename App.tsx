@@ -37,6 +37,7 @@ import axios from "axios";
 import * as Linking from "expo-linking";
 import { Image } from "react-native";
 import { SvgUri } from "react-native-svg";
+import Invitation from "./screens/invitation";
 
 const Tab = () => {
   const BaseTab = createBottomTabNavigator<TabParamList>();
@@ -180,7 +181,7 @@ export default function App() {
   }, []);
 
   // =================== useState ===================
-  const [isSignedIn, setIsSignedIn] = useState<Boolean>(true);
+  const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
 
   const Stack = createNativeStackNavigator<StackParamList>();
 
@@ -208,10 +209,15 @@ export default function App() {
         {isSignedIn ? (
           <>
             <Stack.Screen name="tab" component={Tab} />
+            <Stack.Screen name="invitation" component={Invitation} />
           </>
         ) : (
           <>
-            <Stack.Screen name="signIn" component={SignIn} />
+            <Stack.Screen
+              name="signIn"
+              component={SignIn}
+              initialParams={{ setIsSignedIn: setIsSignedIn }}
+            />
             <Stack.Screen name="signUp" component={SignUp} />
           </>
         )}
