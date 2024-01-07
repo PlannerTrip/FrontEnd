@@ -19,7 +19,7 @@ import TripPlanner from "./screens/tripPlanner"
 import PlaceInformation from "./screens/placeInformation"
 
 // =================== type ===================
-import { StackParamList, TabParamList } from "./interface/navigate"
+import { StackParamList } from "./interface/navigate"
 
 // =================== Icon ===================
 
@@ -41,7 +41,7 @@ import { SvgUri } from "react-native-svg"
 import Invitation from "./screens/invitation"
 
 const Tab = () => {
-    const BaseTab = createBottomTabNavigator<TabParamList>()
+    const BaseTab = createBottomTabNavigator<StackParamList>()
     return (
         <BaseTab.Navigator
             screenOptions={{
@@ -170,11 +170,7 @@ export default function App() {
     // =================== deepLink ===================
     const config = {
         screens: {
-            tab: {
-                screens: {
-                    home: "home/:sort?",
-                },
-            },
+            invitation: "invitation/:inviteLink",
         },
     }
 
@@ -196,10 +192,10 @@ export default function App() {
 
     const authCheck = async () => {
         try {
-            const result = await SecureStore.getItemAsync("key")
-            const response = await axios.get(`${API_URL}/authCheck`, {
+            const token = await SecureStore.getItemAsync("key")
+            await axios.get(`${API_URL}/authCheck`, {
                 headers: {
-                    authorization: result,
+                    authorization: token,
                 },
             })
             setIsSignedIn(true)
@@ -239,12 +235,3 @@ export default function App() {
         </NavigationContainer>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-})
