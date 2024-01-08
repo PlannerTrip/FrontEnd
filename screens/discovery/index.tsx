@@ -12,6 +12,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 
 import { API_URL } from "@env"
 import { StackParamList } from "../../interface/navigate"
+import LocationCard from "../../components/Discovery/LocationCard"
 
 type Props = NativeStackScreenProps<StackParamList, "discovery">
 
@@ -41,45 +42,61 @@ const Discovery = ({ navigation }: Props) => {
         }
     }
 
-    const handlePlaceInformation = () => {
+    const handlePlaceInformation = (place) => {
         console.log("handlePlaceInformation")
         navigation.navigate("placeInformation", {
-            placeId: "P03000001",
-            type: "ATTRACTION",
-            // forecastDate: "string",
-            // forecastDuration: "string",
+            placeId: place.placeId,
+            type: place.type,
+            forecastDate: place.forecastDate,
+            forecastDuration: place.forecastDuration,
         })
     }
 
-    return (
-        <View
-            style={{
-                paddingTop: insets.top,
-                paddingBottom: insets.bottom,
-                paddingLeft: insets.left,
-                paddingRight: insets.right,
-            }}
-            className="bg-[#FCF8EF] "
-        >
-            <View className="h-[156px] bg-[#FCF8EF] p-[16px]   flex-col gap-[16px]">
-                <Text className="leading-[60px] text-[40px] font-bold">
-                    ไปเที่ยวกันเถอะ{" "}
-                </Text>
-                <Pressable onPress={createTrip}>
-                    <View className="h-[48px] p-[12px] bg-[#FFC502] flex-row justify-center items-center rounded ">
-                        <Text className="text-white text-[16px] font-bold ">
-                            เริ่มจัดทริป
-                        </Text>
-                    </View>
-                </Pressable>
+    const mock = [
+        { placeId: "P03000001", type: "ATTRACTION" },
+        { placeId: "P03025435", type: "ATTRACTION" },
+    ]
 
-                <Pressable onPress={handlePlaceInformation}>
-                    <View className="mt-[120px] h-[48px] p-[12px] bg-[#FFC502] flex-row justify-center items-center rounded ">
-                        <Text className="text-white text-[16px] font-bold ">
-                            info
-                        </Text>
-                    </View>
-                </Pressable>
+    return (
+        <View>
+            <View
+                style={{
+                    paddingTop: insets.top,
+                    paddingBottom: insets.bottom,
+                    paddingLeft: insets.left,
+                    paddingRight: insets.right,
+                }}
+                className="bg-[#FCF8EF] "
+            >
+                <View className="h-[156px] bg-[#FCF8EF] p-[16px]   flex-col gap-[16px]">
+                    <Text className="leading-[60px] text-[40px] font-bold">
+                        ไปเที่ยวกันเถอะ{" "}
+                    </Text>
+                    <Pressable onPress={createTrip}>
+                        <View className="h-[48px] p-[12px] bg-[#FFC502] flex-row justify-center items-center rounded ">
+                            <Text className="text-white text-[16px] font-bold ">
+                                เริ่มจัดทริป
+                            </Text>
+                        </View>
+                    </Pressable>
+                </View>
+            </View>
+
+            <View className="p-[16px] bg-white h-[100%]">
+                {mock.map((place) => {
+                    return (
+                        <View className="mt-[16px]">
+                            <Pressable
+                                onPress={() => handlePlaceInformation(place)}
+                            >
+                                <LocationCard
+                                    key={place.placeId}
+                                    place={place}
+                                />
+                            </Pressable>
+                        </View>
+                    )
+                })}
             </View>
         </View>
     )

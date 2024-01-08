@@ -121,7 +121,10 @@ const PlaceInformation = ({ navigation, route }: Props) => {
             }}
             className="bg-[#FFFFFF] h-[100%] w-[100%] overflow-scroll"
         >
-            <ScrollView>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+            >
                 <View>
                     <Pressable
                         onPress={handleGoBack}
@@ -160,13 +163,14 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                     </View>
 
                     <Text className="mt-[16px] text-[16px] leading-[24px]">
+                        <Text className="font-bold">{data.placeName}</Text>{" "}
                         {data.introduction}
                     </Text>
 
                     <View className="mt-[16px] ">
                         {data.tag.map((tag) => {
                             return (
-                                <View className="px-[4px] py-[2px]  border border-[#54400E] rounded-[2px] justify-center">
+                                <View className="self-start px-[4px] py-[2px]  border border-[#54400E] rounded-[2px] justify-center">
                                     <Text className="text-[12px] leading-[16px] text-[#54400E]">
                                         {tag}
                                     </Text>
