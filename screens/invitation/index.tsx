@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { View, Text, Button } from "react-native";
@@ -15,6 +15,7 @@ import axios, { AxiosResponse } from "axios";
 import * as SecureStore from "expo-secure-store";
 import * as Linking from "expo-linking";
 
+import { Socket, io } from "socket.io-client";
 import { API_URL } from "@env";
 
 type Props = NativeStackScreenProps<StackParamList, "invitation">;
@@ -28,19 +29,47 @@ const Invitation = ({ route, navigation }: Props) => {
 
   useFocusEffect(
     useCallback(() => {
+      const socket = io(`${API_URL}`, {
+        transports: ["websocket"],
+      });
+      setCurrentSocket(socket);
+      socket.on("connect", () => {
+        console.log("connect");
+      });
+
+      socket.on("connect_error", (error) => {
+        console.log("Socket Error", error.message);
+      });
+
+      socket.on("updateMember", (data) => {
+        console.log("updateMember : ", data);
+      });
+
       if (inviteLink) {
         verifyInviteLink(inviteLink);
       } else if (tripId) {
         // get data of user
         getMember(tripId);
       }
+
+      return () => {
+        socket.disconnect();
+        console.log("didnt focus");
+      };
     }, [inviteLink, tripId])
   );
 
   // ====================== useState ======================
 
-  const [member, setDisplayMember] = useState([]);
+  const [displayMember, setDisplayMember] = useState([]);
+  const [currentSocket, setCurrentSocket] = useState<any>();
   const [currentTripId, setCurrentTripId] = useState(tripId ? tripId : "");
+
+  useEffect(() => {
+    if (currentTripId && currentSocket) {
+      currentSocket.emit("joinTrip", currentTripId);
+    }
+  }, [currentTripId]);
 
   // ====================== function ======================
 
@@ -90,7 +119,9 @@ const Invitation = ({ route, navigation }: Props) => {
           authorization: token,
         },
       });
-      setDisplayMember(response.data);
+
+      setDisplayMember(response.data.member);
+      setCurrentTripId(response.data.tripId);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         console.log(error.response.data);
@@ -115,7 +146,7 @@ const Invitation = ({ route, navigation }: Props) => {
       />
       <Text>Invitation</Text>
       <Button title="invite link" onPress={getInvitationLink} />
-      {member.map((user) => (
+      {displayMember.map((user) => (
         <View className="h-[20px] m-[20px] bg-yellow-100" key={user.userId}>
           <Text>{user.userId}</Text>
         </View>
