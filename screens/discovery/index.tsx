@@ -43,6 +43,12 @@ const Discovery = ({ navigation }: Props) => {
 
     const handlePlaceInformation = () => {
         console.log("handlePlaceInformation")
+        navigation.navigate("placeInformation", {
+            placeId: "P03000001",
+            type: "ATTRACTION",
+            // forecastDate: "string",
+            // forecastDuration: "string",
+        })
     }
 
     return (

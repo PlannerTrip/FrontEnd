@@ -8,5 +8,10 @@ export type StackParamList = {
     discovery: undefined
     profile: undefined
     tripPlanner: undefined
-    placeInformation: undefined
+    placeInformation: {
+        placeId: string
+        type: string
+        forecastDate?: string
+        forecastDuration?: string
+    }
 }
