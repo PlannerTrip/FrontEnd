@@ -23,7 +23,7 @@ type Props = NativeStackScreenProps<StackParamList, "invitation">;
 const Invitation = ({ route, navigation }: Props) => {
   const insets = useSafeAreaInsets();
 
-  const { inviteLink, tripId } = route.params;
+  const { tripId } = route.params;
 
   const prefix = Linking.createURL("/");
 
@@ -45,18 +45,14 @@ const Invitation = ({ route, navigation }: Props) => {
         console.log("updateMember : ", data);
       });
 
-      if (inviteLink) {
-        verifyInviteLink(inviteLink);
-      } else if (tripId) {
-        // get data of user
-        getMember(tripId);
-      }
+      // get data of user
+      getMember();
 
       return () => {
         socket.disconnect();
         console.log("didnt focus");
       };
-    }, [inviteLink, tripId])
+    }, [tripId])
   );
 
   // ====================== useState ======================
@@ -64,6 +60,7 @@ const Invitation = ({ route, navigation }: Props) => {
   const [displayMember, setDisplayMember] = useState([]);
   const [currentSocket, setCurrentSocket] = useState<any>();
   const [currentTripId, setCurrentTripId] = useState(tripId ? tripId : "");
+  const [owner, setOwner] = useState(false);
 
   useEffect(() => {
     if (currentTripId && currentSocket) {
@@ -73,17 +70,19 @@ const Invitation = ({ route, navigation }: Props) => {
 
   // ====================== function ======================
 
-  const getMember = async (id: string) => {
+  const getMember = async () => {
     try {
+      console.log(tripId);
       const token = await SecureStore.getItemAsync("key");
       //  add response type
       const response = await axios.get(`${API_URL}/trip/information`, {
-        params: { tripId: id, type: "member" },
+        params: { tripId: tripId, type: "member" },
         headers: {
           authorization: token,
         },
       });
-      setDisplayMember(response.data);
+      setOwner(response.data.owner);
+      setDisplayMember(response.data.data);
     } catch (err) {
       console.log({ error: err });
     }
@@ -103,29 +102,10 @@ const Invitation = ({ route, navigation }: Props) => {
       );
       // copy to Clipboard
       await Clipboard.setStringAsync(
-        prefix + "invitation/" + response.data.inviteLink
+        prefix + "inviteVerify/" + response.data.inviteLink
       );
     } catch (err) {
       console.log({ error: err });
-    }
-  };
-
-  const verifyInviteLink = async (inviteCode: string) => {
-    try {
-      const token = await SecureStore.getItemAsync("key");
-      const response = await axios.get(`${API_URL}/trip/verifyInvitation`, {
-        params: { inviteLink: inviteCode },
-        headers: {
-          authorization: token,
-        },
-      });
-
-      setDisplayMember(response.data.member);
-      setCurrentTripId(response.data.tripId);
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        console.log(error.response.data);
-      }
     }
   };
 
@@ -137,7 +117,16 @@ const Invitation = ({ route, navigation }: Props) => {
         paddingLeft: insets.left,
         paddingRight: insets.right,
       }}
+      className="flex-1 bg-[#FFF]"
     >
+      <View className="h-[80px] p-[16px] bg-[#FFF] justify-between flex-row items-end">
+        <Text>icon</Text>
+        <Text className="text-[24px] font-bold">
+          เลือกวันที่จะเดินทางท่องเที่ยว
+        </Text>
+      </View>
+
+      <View className="grow bg-[#EEEEEE]"></View>
       <Button
         title="goback"
         onPress={() => {
