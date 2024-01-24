@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState, useContext } from "react";
-import { useAuthStatus } from "../App";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { View } from "react-native";
@@ -28,11 +27,12 @@ import axios from "axios";
 // ==================== const ====================
 import { API_URL } from "@env";
 import { FAIL, SUCCESS } from "../utils/const";
+import { AuthData } from "../App";
 
 type Props = NativeStackScreenProps<StackParamList, "inviteVerify">;
 
 const InviteVerify = ({ route, navigation }: Props) => {
-  const authCheckStatus = useAuthStatus();
+  const { authStatus } = useContext(AuthData);
   const insets = useSafeAreaInsets();
 
   const { inviteLink } = route.params;
@@ -55,7 +55,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
 
   // if auth check and verify done
   useEffect(() => {
-    if (authCheckStatus === SUCCESS && tripId !== "") {
+    if (authStatus === SUCCESS && tripId !== "") {
       if (currentStage === "invitation") {
         console.log(tripId);
         navigation.navigate("invitation", {
@@ -63,7 +63,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
         });
       }
     }
-  }, [authCheckStatus, currentStage, tripId]);
+  }, [authStatus, currentStage, tripId]);
 
   //   ==================== function ====================
 

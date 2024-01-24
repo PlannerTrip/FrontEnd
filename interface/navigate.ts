@@ -1,7 +1,7 @@
 export type StackParamList = {
   tab: undefined;
   invitation: { tripId: string };
-  signIn: { setIsSignedIn: React.Dispatch<React.SetStateAction<Boolean>> };
+  signIn: undefined;
   signUp: undefined;
   achievement: undefined;
   blog: undefined;

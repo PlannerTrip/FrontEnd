@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Pressable, TextInput } from "react-native";
 import { View, Text } from "react-native";
 import { API_URL } from "@env";
@@ -11,6 +11,7 @@ import axios from "axios";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../interface/navigate";
 import * as SecureStore from "expo-secure-store";
+import { AuthData } from "../App";
 
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
@@ -18,7 +19,7 @@ const SignIn = ({ route }: Props) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setIsSignedIn } = route.params;
+  const { setIsSignedIn } = useContext(AuthData);
 
   const insets = useSafeAreaInsets();
 
@@ -29,7 +30,7 @@ const SignIn = ({ route }: Props) => {
         password: password,
       });
       await SecureStore.setItemAsync("key", response.data.token);
-      setIsSignedIn(true);
+      if (setIsSignedIn) setIsSignedIn(true);
     } catch (err) {
       console.log(err);
     }
