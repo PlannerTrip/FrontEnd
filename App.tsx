@@ -23,18 +23,9 @@ import axios from "axios";
 import * as Linking from "expo-linking";
 
 import { FAIL, LOADING, SUCCESS } from "./utils/const";
+import { AuthData } from "./contexts/authContext";
 
 const prefix = Linking.createURL("/");
-
-export const AuthData = createContext<{
-  token: string;
-  authStatus: string;
-  setIsSignedIn: null | React.Dispatch<React.SetStateAction<Boolean>>;
-}>({
-  token: "",
-  authStatus: "",
-  setIsSignedIn: null,
-});
 
 export default function App() {
   // =================== deepLink ===================
@@ -95,7 +86,9 @@ export default function App() {
       }}
     >
       <NavigationContainer linking={linking}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          screenOptions={{ headerShown: false, animation: "none" }}
+        >
           {isLoading ? (
             <Stack.Screen name="loading" component={Loading} />
           ) : isSignedIn ? (

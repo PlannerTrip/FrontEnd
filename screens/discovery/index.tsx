@@ -85,7 +85,7 @@ const Discovery = ({ navigation }: Props) => {
       <View className="p-[16px] bg-white h-[100%]">
         {mock.map((place) => {
           return (
-            <View className="mt-[16px]">
+            <View className="mt-[16px]" key={place.placeId}>
               <Pressable onPress={() => handlePlaceInformation(place)}>
                 <LocationCard key={place.placeId} place={place} />
               </Pressable>

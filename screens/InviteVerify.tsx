@@ -26,8 +26,9 @@ import axios from "axios";
 
 // ==================== const ====================
 import { API_URL } from "@env";
-import { FAIL, SUCCESS } from "../utils/const";
-import { AuthData } from "../App";
+import { CLOSE, FAIL, LOADING, RELOAD, SUCCESS } from "../utils/const";
+import Modal from "../components/modal";
+import { AuthData } from "../contexts/authContext";
 
 type Props = NativeStackScreenProps<StackParamList, "inviteVerify">;
 
@@ -37,8 +38,16 @@ const InviteVerify = ({ route, navigation }: Props) => {
 
   const { inviteLink } = route.params;
 
+  //   ==================== useState ====================
+
   const [currentStage, setCurrentStage] = useState("");
   const [tripId, setTripId] = useState("");
+
+  const [errorMessage, setErrorMessage] = useState({
+    title: "",
+    subTitle: "",
+    action: CLOSE,
+  });
 
   //   ==================== useEffect ====================
 
@@ -49,19 +58,27 @@ const InviteVerify = ({ route, navigation }: Props) => {
   // verifyInviteLink
   useFocusEffect(
     useCallback(() => {
-      verifyInviteLink();
-    }, [inviteLink])
+      if (authStatus !== LOADING) {
+        // reset value
+        setCurrentStage("");
+        setTripId("");
+        setErrorMessage({ title: "", subTitle: "", action: CLOSE });
+        // checkLink
+        verifyInviteLink();
+      }
+    }, [inviteLink, authStatus])
   );
 
-  // if auth check and verify done
   useEffect(() => {
     if (authStatus === SUCCESS && tripId !== "") {
       if (currentStage === "invitation") {
-        console.log(tripId);
         navigation.navigate("invitation", {
           tripId: tripId,
         });
       }
+    }
+    if (authStatus === FAIL && tripId !== "") {
+      navigation.navigate("signIn");
     }
   }, [authStatus, currentStage, tripId]);
 
@@ -80,8 +97,42 @@ const InviteVerify = ({ route, navigation }: Props) => {
       setTripId(response.data.tripId);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        console.log(error.response.data);
+        if (error.response.data.error !== "maximumCapacity") {
+          setErrorMessage({
+            title: "จำนวนสมาชิกในทริปเต็มแล้ว",
+            subTitle: "",
+            action: CLOSE,
+          });
+        } else if (error.response.data.error !== "invalidInviteLink") {
+          setErrorMessage({
+            title: "มีบางอย่างผิดปกติ",
+            subTitle: "โปรดลองให่อีกครั้ง",
+            action: CLOSE,
+          });
+        }
+      } else {
+        // when internet error
+        setErrorMessage({
+          title: "มีบางอย่างผิดปกติ",
+          subTitle: "โปรดลองให่อีกครั้ง",
+          action: RELOAD,
+        });
       }
+    }
+  };
+
+  const handleOnPressModal = () => {
+    if (errorMessage.action === CLOSE) {
+      if (authStatus === SUCCESS) {
+        navigation.navigate("signIn");
+      } else if (authStatus === FAIL) {
+        navigation.navigate("signIn");
+      }
+    } else if (errorMessage.action === RELOAD) {
+      // reset value
+      setErrorMessage({ title: "", subTitle: "", action: CLOSE });
+      // checkLink
+      verifyInviteLink();
     }
   };
 
@@ -109,9 +160,18 @@ const InviteVerify = ({ route, navigation }: Props) => {
       }}
       className="bg-[#0000008C] h-[100%] flex-1 justify-center items-center"
     >
-      <Animated.View style={style}>
-        <LoadingSvg />
-      </Animated.View>
+      {errorMessage.title === "" ? (
+        <Animated.View style={style}>
+          <LoadingSvg />
+        </Animated.View>
+      ) : (
+        <Modal
+          title={errorMessage.title}
+          supTitle={errorMessage.subTitle}
+          buttonTitle={errorMessage.action === CLOSE ? "ปิด" : "รีโหลด"}
+          onPress={handleOnPressModal}
+        />
+      )}
     </View>
   );
 };

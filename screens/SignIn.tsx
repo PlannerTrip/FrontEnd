@@ -3,15 +3,12 @@ import { Pressable, TextInput } from "react-native";
 import { View, Text } from "react-native";
 import { API_URL } from "@env";
 
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import axios from "axios";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { StackParamList } from "../interface/navigate";
 import * as SecureStore from "expo-secure-store";
-import { AuthData } from "../App";
+import { AuthData } from "../contexts/authContext";
 
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
