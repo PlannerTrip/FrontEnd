@@ -23,6 +23,7 @@ import axios from "axios";
 import * as Linking from "expo-linking";
 
 import { FAIL, LOADING, SUCCESS } from "./utils/const";
+
 import { AuthData } from "./contexts/authContext";
 
 const prefix = Linking.createURL("/");
@@ -47,10 +48,15 @@ export default function App() {
   }, []);
 
   // =================== useState ===================
-  const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
   const [isLoading, setIsLoading] = useState<Boolean>(true);
-  const [authCheckStatus, setAuthCheckStatus] = useState(LOADING);
-  const [token, setToken] = useState("");
+
+  const [authInformation, setAuthInformation] = useState({
+    authStatus: LOADING,
+    token: "",
+    userId: "",
+  });
+
+  const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
 
   const Stack = createNativeStackNavigator<StackParamList>();
 
@@ -60,18 +66,25 @@ export default function App() {
     try {
       const localToken = await SecureStore.getItemAsync("key");
       if (!localToken) throw new Error("can't get token");
-      setToken(localToken);
-      await axios.get(`${API_URL}/authCheck`, {
+      const response = await axios.get(`${API_URL}/authCheck`, {
         headers: {
           authorization: localToken,
         },
       });
-      setAuthCheckStatus(SUCCESS);
+      setAuthInformation({
+        authStatus: SUCCESS,
+        token: localToken,
+        userId: response.data.userId,
+      });
       setIsSignedIn(true);
       setIsLoading(false);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        setAuthCheckStatus(FAIL);
+        setAuthInformation({
+          authStatus: FAIL,
+          token: "",
+          userId: "",
+        });
         console.log(error.response.data);
       }
     }
@@ -80,8 +93,7 @@ export default function App() {
   return (
     <AuthData.Provider
       value={{
-        authStatus: authCheckStatus,
-        token: token,
+        ...authInformation,
         setIsSignedIn: setIsSignedIn,
       }}
     >

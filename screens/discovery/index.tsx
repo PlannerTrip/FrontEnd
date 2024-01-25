@@ -21,7 +21,6 @@ const Discovery = ({ navigation }: Props) => {
 
   const createTrip = async () => {
     try {
-      console.log("createTrip");
       const token = await SecureStore.getItemAsync("key");
       const response: AxiosResponse<{ tripId: string }> = await axios.post(
         `${API_URL}/trip`,

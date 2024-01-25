@@ -124,7 +124,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
   const handleOnPressModal = () => {
     if (errorMessage.action === CLOSE) {
       if (authStatus === SUCCESS) {
-        navigation.navigate("signIn");
+        navigation.navigate("tab");
       } else if (authStatus === FAIL) {
         navigation.navigate("signIn");
       }
