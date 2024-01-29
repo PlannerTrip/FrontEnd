@@ -79,6 +79,8 @@ export default function App() {
       setIsSignedIn(true);
       setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
+      console.log(error);
       if (axios.isAxiosError(error) && error.response) {
         setAuthInformation({
           authStatus: FAIL,

@@ -97,13 +97,13 @@ const InviteVerify = ({ route, navigation }: Props) => {
       setTripId(response.data.tripId);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        if (error.response.data.error !== "maximumCapacity") {
+        if (error.response.data.error === "maximumCapacity") {
           setErrorMessage({
             title: "จำนวนสมาชิกในทริปเต็มแล้ว",
             subTitle: "",
             action: CLOSE,
           });
-        } else if (error.response.data.error !== "invalidInviteLink") {
+        } else if (error.response.data.error === "invalidInviteLink") {
           setErrorMessage({
             title: "มีบางอย่างผิดปกติ",
             subTitle: "โปรดลองให่อีกครั้ง",

@@ -26,6 +26,8 @@ import UserCard from "../../components/invitation/userCard";
 import ButtonCustom from "../../components/button";
 
 import { GetMember, MemberData } from "../../interface/invitation";
+import ConfirmModal from "../../components/confirmModal";
+import { DISBANDGROUP, LEAVEGROUP, REMOVEFRIEND } from "../../utils/const";
 
 type Props = NativeStackScreenProps<StackParamList, "invitation">;
 
@@ -54,8 +56,27 @@ const Invitation = ({ route, navigation }: Props) => {
         console.log("Socket Error", error.message);
       });
 
-      socket.on("updateMember", (data) => {
-        console.log("updateMember : ", data);
+      socket.on("updateMember", (data: { type: string; data: MemberData }) => {
+        if (data.type === "addMember") {
+          setDisplayMember((displayMember) => [...displayMember, data.data]);
+        }
+      });
+
+      socket.on("removeMember", (data: { userId: string }) => {
+        if (data.userId === userId) {
+          navigation.navigate("tab");
+        } else {
+          setDisplayMember((displayMember) =>
+            displayMember.filter((member) => member.userId !== data.userId)
+          );
+          if (confirmModal.userId === data.userId) {
+            setConfirmModal({ display: false, name: "", type: "", userId: "" });
+          }
+        }
+      });
+
+      socket.on("removeGroup", () => {
+        navigation.navigate("tab");
       });
 
       // get data of user
@@ -74,7 +95,14 @@ const Invitation = ({ route, navigation }: Props) => {
   const [currentSocket, setCurrentSocket] = useState<Socket>();
   const [ownerOfTrip, setOwnerOfTrip] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
+
   const [displayUrlModal, setDisplayUrlModal] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    display: false,
+    type: "",
+    userId: "",
+    name: "",
+  });
 
   // ====================== function ======================
 
@@ -117,6 +145,98 @@ const Invitation = ({ route, navigation }: Props) => {
     }
   };
 
+  const comFirmModalTitle = () => {
+    if (confirmModal.type === REMOVEFRIEND) {
+      return (
+        <Text className="text-[16px] font-bold leading-[24px]">
+          ลบ "${confirmModal.name}" ออกจากกลุ่ม
+        </Text>
+      );
+    } else if (confirmModal.type === LEAVEGROUP) {
+      return (
+        <Text className="text-[16px] font-bold leading-[24px]">
+          คุณกำลังจะออกจากกลุ่ม
+        </Text>
+      );
+    } else if (confirmModal.type === DISBANDGROUP) {
+      return (
+        <>
+          <Text className="text-[16px] font-bold leading-[24px]">
+            คุณกำลังจะออกจากการสร้างทริป
+          </Text>
+
+          <Text className="text-[16px] font-bold leading-[24px]">
+            ทริปของคุณกำลังจะถูกลบ
+          </Text>
+        </>
+      );
+    } else {
+      return <></>;
+    }
+  };
+
+  const onPressConfirmModal = async () => {
+    try {
+      if (confirmModal.type === REMOVEFRIEND) {
+        await axios.delete(`${API_URL}/trip/member`, {
+          data: { friendId: confirmModal.userId, tripId },
+          headers: {
+            authorization: token,
+          },
+        });
+        setConfirmModal({
+          display: false,
+          userId: "",
+          name: "",
+          type: "",
+        });
+      } else if (confirmModal.type === LEAVEGROUP) {
+        await axios.delete(`${API_URL}/trip/member`, {
+          data: { friendId: userId, tripId },
+          headers: {
+            authorization: token,
+          },
+        });
+        setConfirmModal({
+          display: false,
+          userId: "",
+          name: "",
+          type: "",
+        });
+      } else if (confirmModal.type === DISBANDGROUP) {
+        await axios.delete(`${API_URL}/trip/`, {
+          data: { tripId },
+          headers: {
+            authorization: token,
+          },
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressBack = async () => {
+    try {
+      if (ownerOfTrip) {
+        // show modal disband group
+        setConfirmModal({
+          display: true,
+          name: "",
+          type: DISBANDGROUP,
+          userId: userId,
+        });
+      } else {
+        // show modal confirm leave
+        setConfirmModal({
+          display: true,
+          name: "",
+          type: LEAVEGROUP,
+          userId: userId,
+        });
+      }
+    } catch (err) {}
+  };
   return (
     <>
       <View
@@ -129,7 +249,9 @@ const Invitation = ({ route, navigation }: Props) => {
       >
         {/* header */}
         <View className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end ">
-          <ArrowLeft />
+          <Pressable onPress={onPressBack}>
+            <ArrowLeft />
+          </Pressable>
           <Text className="text-[24px] font-bold h-[40px] ml-[8px]">
             เลือกวันที่จะเดินทางท่องเที่ยว
           </Text>
@@ -137,15 +259,17 @@ const Invitation = ({ route, navigation }: Props) => {
 
         {/* content */}
         <View
-          className="grow bg-[#EEEEEE] p-[16px] flex-col items-center"
+          className="grow bg-[#EEEEEE] pb-[16px] px-[16px]  flex-col items-center"
           style={{ paddingBottom: insets.bottom }}
         >
           {displayMember.map((data) => (
             <UserCard
+              key={data.userId}
               data={data}
               ownerOfCard={data.userId === userId}
               ownerOfTrip={ownerOfTrip}
               currentSocket={currentSocket}
+              setConfirmModal={setConfirmModal}
             />
           ))}
           {/* invite button */}
@@ -158,7 +282,12 @@ const Invitation = ({ route, navigation }: Props) => {
                 </Text>
               </View>
             ) : (
-              <View className="mt-[16px]"></View>
+              <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] border bg-white border-[#FFC502]">
+                <SecondInvite />
+                <Text className="ml-[8px] text-[#FFC502] font-bold text-[16px]">
+                  เข้าร่วม {displayMember.length}/4 คน
+                </Text>
+              </View>
             )}
           </Pressable>
         </View>
@@ -178,24 +307,42 @@ const Invitation = ({ route, navigation }: Props) => {
           )}
         </View>
       </View>
-      {/* url modal */}
-      {displayUrlModal && (
+
+      {/*  modal */}
+      {(displayUrlModal || confirmModal.display) && (
         <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
-          <View className="pt-[16px] bg-[#fff] rounded-lg w-[279px] px-[12px] flex-col items-center pb-[12px]">
-            {displayMember.length === 1 && (
-              <Text className="mb-[10px] text-[16px] font-bold">
-                ชวนเพื่อนสำเร็จแล้ว
-              </Text>
-            )}
-            <Text className="text-[16px] mb-[28px]">{inviteUrl}</Text>
-            <ButtonCustom
-              title="OK"
-              width="w-[255px]"
-              onPress={() => {
-                setDisplayUrlModal(false);
+          {confirmModal.display && (
+            <ConfirmModal
+              title={comFirmModalTitle()}
+              confirmTitle={confirmModal.type === LEAVEGROUP ? "ออก" : "ลบ"}
+              onPressCancel={() => {
+                setConfirmModal({
+                  display: false,
+                  userId: "",
+                  name: "",
+                  type: "",
+                });
               }}
+              onPressConfirm={onPressConfirmModal}
             />
-          </View>
+          )}
+          {displayUrlModal && (
+            <View className="pt-[16px] bg-[#fff] rounded-lg w-[279px] px-[12px] flex-col items-center pb-[12px]">
+              {displayMember.length === 1 && (
+                <Text className="mb-[10px] text-[16px] font-bold">
+                  ชวนเพื่อนสำเร็จแล้ว
+                </Text>
+              )}
+              <Text className="text-[16px] mb-[28px]">{inviteUrl}</Text>
+              <ButtonCustom
+                title="OK"
+                width="w-[255px]"
+                onPress={() => {
+                  setDisplayUrlModal(false);
+                }}
+              />
+            </View>
+          )}
         </View>
       )}
     </>
