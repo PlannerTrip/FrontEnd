@@ -26,6 +26,9 @@ import { FAIL, LOADING, SUCCESS } from "./utils/const";
 
 import { AuthData } from "./contexts/authContext";
 
+import * as eva from "@eva-design/eva";
+import { ApplicationProvider, Layout } from "@ui-kitten/components";
+
 const prefix = Linking.createURL("/");
 
 export default function App() {
@@ -93,37 +96,39 @@ export default function App() {
   };
 
   return (
-    <AuthData.Provider
-      value={{
-        ...authInformation,
-        setIsSignedIn: setIsSignedIn,
-      }}
-    >
-      <NavigationContainer linking={linking}>
-        <Stack.Navigator
-          screenOptions={{ headerShown: false, animation: "none" }}
-        >
-          {isLoading ? (
-            <Stack.Screen name="loading" component={Loading} />
-          ) : isSignedIn ? (
-            <>
-              <Stack.Screen name="tab" component={Tab} />
-              <Stack.Screen name="invitation" component={Invitation} />
-              <Stack.Screen
-                name="placeInformation"
-                component={PlaceInformation}
-              />
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="signIn" component={SignIn} />
-              <Stack.Screen name="signUp" component={SignUp} />
-            </>
-          )}
+    <ApplicationProvider {...eva} theme={eva.light}>
+      <AuthData.Provider
+        value={{
+          ...authInformation,
+          setIsSignedIn: setIsSignedIn,
+        }}
+      >
+        <NavigationContainer linking={linking}>
+          <Stack.Navigator
+            screenOptions={{ headerShown: false, animation: "none" }}
+          >
+            {isLoading ? (
+              <Stack.Screen name="loading" component={Loading} />
+            ) : isSignedIn ? (
+              <>
+                <Stack.Screen name="tab" component={Tab} />
+                <Stack.Screen name="invitation" component={Invitation} />
+                <Stack.Screen
+                  name="placeInformation"
+                  component={PlaceInformation}
+                />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="signIn" component={SignIn} />
+                <Stack.Screen name="signUp" component={SignUp} />
+              </>
+            )}
 
-          <Stack.Screen name="inviteVerify" component={InviteVerify} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthData.Provider>
+            <Stack.Screen name="inviteVerify" component={InviteVerify} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthData.Provider>
+    </ApplicationProvider>
   );
 }

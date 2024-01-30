@@ -28,6 +28,7 @@ import ButtonCustom from "../../components/button";
 import { GetMember, MemberData } from "../../interface/invitation";
 import ConfirmModal from "../../components/confirmModal";
 import { DISBANDGROUP, LEAVEGROUP, REMOVEFRIEND } from "../../utils/const";
+import { ScrollView } from "react-native";
 
 type Props = NativeStackScreenProps<StackParamList, "invitation">;
 
@@ -56,11 +57,24 @@ const Invitation = ({ route, navigation }: Props) => {
         console.log("Socket Error", error.message);
       });
 
-      socket.on("updateMember", (data: { type: string; data: MemberData }) => {
-        if (data.type === "addMember") {
-          setDisplayMember((displayMember) => [...displayMember, data.data]);
-        }
+      socket.on("addMember", (data: { data: MemberData }) => {
+        setDisplayMember((displayMember) => [...displayMember, data.data]);
       });
+
+      socket.on(
+        "updateDate",
+        (data: { userId: string; date: { start: string; end: string }[] }) => {
+          setDisplayMember((displayMember) =>
+            displayMember.map((member) => {
+              if (member.userId === data.userId) {
+                return { ...member, date: data.date };
+              } else {
+                return member;
+              }
+            })
+          );
+        }
+      );
 
       socket.on("removeMember", (data: { userId: string }) => {
         if (data.userId === userId) {
@@ -210,6 +224,12 @@ const Invitation = ({ route, navigation }: Props) => {
             authorization: token,
           },
         });
+        setConfirmModal({
+          display: false,
+          userId: "",
+          name: "",
+          type: "",
+        });
       }
     } catch (err) {
       console.log(err);
@@ -237,6 +257,7 @@ const Invitation = ({ route, navigation }: Props) => {
       }
     } catch (err) {}
   };
+
   return (
     <>
       <View
@@ -258,39 +279,41 @@ const Invitation = ({ route, navigation }: Props) => {
         </View>
 
         {/* content */}
-        <View
-          className="grow bg-[#EEEEEE] pb-[16px] px-[16px]  flex-col items-center"
-          style={{ paddingBottom: insets.bottom }}
-        >
-          {displayMember.map((data) => (
-            <UserCard
-              key={data.userId}
-              data={data}
-              ownerOfCard={data.userId === userId}
-              ownerOfTrip={ownerOfTrip}
-              currentSocket={currentSocket}
-              setConfirmModal={setConfirmModal}
-            />
-          ))}
-          {/* invite button */}
-          <Pressable onPress={getInvitationLink}>
-            {displayMember.length === 1 ? (
-              <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] bg-[#FFC502]">
-                <FirstInvite />
-                <Text className="ml-[8px] text-white font-bold text-[16px]">
-                  ชวนเพื่อน
-                </Text>
-              </View>
-            ) : (
-              <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] border bg-white border-[#FFC502]">
-                <SecondInvite />
-                <Text className="ml-[8px] text-[#FFC502] font-bold text-[16px]">
-                  เข้าร่วม {displayMember.length}/4 คน
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
+        <ScrollView className=" bg-[#EEEEEE] ">
+          <View
+            className="pb-[16px] px-[16px]  flex-col items-center"
+            style={{ paddingBottom: insets.bottom }}
+          >
+            {displayMember.map((data) => (
+              <UserCard
+                key={data.userId}
+                data={data}
+                ownerOfCard={data.userId === userId}
+                ownerOfTrip={ownerOfTrip}
+                setConfirmModal={setConfirmModal}
+                tripId={tripId}
+              />
+            ))}
+            {/* invite button */}
+            <Pressable onPress={getInvitationLink}>
+              {displayMember.length === 1 ? (
+                <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] bg-[#FFC502]">
+                  <FirstInvite />
+                  <Text className="ml-[8px] text-white font-bold text-[16px]">
+                    ชวนเพื่อน
+                  </Text>
+                </View>
+              ) : (
+                <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] border bg-white border-[#FFC502]">
+                  <SecondInvite />
+                  <Text className="ml-[8px] text-[#FFC502] font-bold text-[16px]">
+                    เข้าร่วม {displayMember.length}/4 คน
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </ScrollView>
         {/* footer */}
         <View
           style={{
