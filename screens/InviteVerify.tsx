@@ -75,6 +75,10 @@ const InviteVerify = ({ route, navigation }: Props) => {
         navigation.navigate("invitation", {
           tripId: tripId,
         });
+      } else if (currentStage === "placeSelect") {
+        navigation.navigate("placeSelect", {
+          tripId: tripId,
+        });
       }
     }
     if (authStatus === FAIL && tripId !== "") {
@@ -93,6 +97,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
           authorization: token,
         },
       });
+
       setCurrentStage(response.data.currentStage);
       setTripId(response.data.tripId);
     } catch (error) {

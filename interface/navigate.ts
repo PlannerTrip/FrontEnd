@@ -1,6 +1,7 @@
 export type StackParamList = {
   tab: undefined;
   invitation: { tripId: string };
+  placeSelect: { tripId: string };
   signIn: undefined;
   signUp: undefined;
   achievement: undefined;

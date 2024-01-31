@@ -1,34 +1,44 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-
-import { View, Text, Button, Pressable } from "react-native";
-import * as Clipboard from "expo-clipboard";
-
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-// ====================== type ======================
-
-import { StackParamList } from "../../interface/navigate";
 
 import axios, { AxiosResponse } from "axios";
+
+import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 
 import { Socket, io } from "socket.io-client";
-import { API_URL } from "@env";
+
+// ====================== type ======================
+
+import { StackParamList } from "../../interface/navigate";
+import { GetMember, MemberData } from "../../interface/invitation";
+
+// ====================== context ======================
+
 import { AuthData } from "../../contexts/authContext";
+
+// ====================== svg ======================
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 import FirstInvite from "../../assets/invitation/firstInvite.svg";
 import SecondInvite from "../../assets/invitation/inviteMoreThanOne.svg";
+import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
 
+// ====================== component ======================
+
+import ConfirmModal from "../../components/confirmModal";
 import UserCard from "../../components/invitation/userCard";
 import ButtonCustom from "../../components/button";
 
-import { GetMember, MemberData } from "../../interface/invitation";
-import ConfirmModal from "../../components/confirmModal";
+import { CalendarRange, RangeDatepicker } from "@ui-kitten/components";
+
+// ====================== const ======================
+
+import { API_URL } from "@env";
 import { DISBANDGROUP, LEAVEGROUP, REMOVEFRIEND } from "../../utils/const";
-import { ScrollView } from "react-native";
 
 type Props = NativeStackScreenProps<StackParamList, "invitation">;
 
@@ -41,72 +51,9 @@ const Invitation = ({ route, navigation }: Props) => {
 
   const prefix = Linking.createURL("/");
 
-  useFocusEffect(
-    useCallback(() => {
-      const socket = io(`${API_URL}`, {
-        transports: ["websocket"],
-      });
-      setCurrentSocket(socket);
-      socket.on("connect", () => {
-        console.log("connect");
-      });
-
-      socket.emit("joinTrip", tripId);
-
-      socket.on("connect_error", (error) => {
-        console.log("Socket Error", error.message);
-      });
-
-      socket.on("addMember", (data: { data: MemberData }) => {
-        setDisplayMember((displayMember) => [...displayMember, data.data]);
-      });
-
-      socket.on(
-        "updateDate",
-        (data: { userId: string; date: { start: string; end: string }[] }) => {
-          setDisplayMember((displayMember) =>
-            displayMember.map((member) => {
-              if (member.userId === data.userId) {
-                return { ...member, date: data.date };
-              } else {
-                return member;
-              }
-            })
-          );
-        }
-      );
-
-      socket.on("removeMember", (data: { userId: string }) => {
-        if (data.userId === userId) {
-          navigation.navigate("tab");
-        } else {
-          setDisplayMember((displayMember) =>
-            displayMember.filter((member) => member.userId !== data.userId)
-          );
-          if (confirmModal.userId === data.userId) {
-            setConfirmModal({ display: false, name: "", type: "", userId: "" });
-          }
-        }
-      });
-
-      socket.on("removeGroup", () => {
-        navigation.navigate("tab");
-      });
-
-      // get data of user
-      getMember();
-
-      return () => {
-        socket.disconnect();
-        console.log("didnt focus");
-      };
-    }, [tripId])
-  );
-
   // ====================== useState ======================
 
   const [displayMember, setDisplayMember] = useState<MemberData[]>([]);
-  const [currentSocket, setCurrentSocket] = useState<Socket>();
   const [ownerOfTrip, setOwnerOfTrip] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
 
@@ -118,7 +65,105 @@ const Invitation = ({ route, navigation }: Props) => {
     name: "",
   });
 
+  const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
+
+  const [filterDate, setFilterDate] = useState<
+    { start: string; end: string }[]
+  >([]);
+
+  // ====================== useEffect ======================
+
+  useFocusEffect(
+    useCallback(() => {
+      const socket = io(`${API_URL}`, {
+        transports: ["websocket"],
+      });
+      handleSocket(socket);
+
+      // get data of user
+      getMember();
+
+      return () => {
+        socket.disconnect();
+        console.log("didnt focus");
+      };
+    }, [tripId])
+  );
+
+  useEffect(() => {
+    if (displayMember.length !== 0) {
+      calculateFreeDateMatches();
+    }
+  }, [displayMember]);
+
   // ====================== function ======================
+
+  const handleSocket = (socket: Socket) => {
+    socket.on("connect", () => {
+      console.log("connect");
+    });
+
+    socket.emit("joinTrip", tripId);
+
+    socket.on("connect_error", (error) => {
+      console.log("Socket Error", error.message);
+    });
+
+    socket.on("addMember", (data: { data: MemberData }) => {
+      setDisplayMember((displayMember) => [...displayMember, data.data]);
+    });
+
+    socket.on(
+      "updateDate",
+      (data: { userId: string; date: { start: string; end: string }[] }) => {
+        setDisplayMember((displayMember) =>
+          displayMember.map((member) => {
+            if (member.userId === data.userId) {
+              return { ...member, date: data.date };
+            } else {
+              return member;
+            }
+          })
+        );
+      }
+    );
+
+    socket.on("removeMember", (data: { userId: string }) => {
+      if (data.userId === userId) {
+        navigation.navigate("tab");
+      } else {
+        setDisplayMember((displayMember) =>
+          displayMember.filter((member) => member.userId !== data.userId)
+        );
+        if (confirmModal.userId === data.userId) {
+          setConfirmModal({ display: false, name: "", type: "", userId: "" });
+        }
+      }
+    });
+
+    socket.on("updateStage", (data: { stage: string }) => {
+      if (data.stage === "placeSelect") {
+        navigation.navigate("placeSelect", {
+          tripId: tripId,
+        });
+      }
+    });
+
+    socket.on("updateTripDate", (data: { start: string; end: string }) => {
+      if (data.start !== "" && data.end !== "") {
+        setDateRange({
+          startDate: new Date(data.start),
+          endDate: new Date(data.end),
+        });
+      } else {
+        setDateRange({});
+      }
+    });
+
+    socket.on("removeGroup", () => {
+      navigation.navigate("tab");
+    });
+  };
 
   const getMember = async () => {
     try {
@@ -132,6 +177,16 @@ const Invitation = ({ route, navigation }: Props) => {
         }
       );
       setOwnerOfTrip(response.data.owner);
+
+      if (response.data.date.start !== "" && response.data.date.end !== "") {
+        setDateRange({
+          startDate: new Date(response.data.date.start),
+          endDate: new Date(response.data.date.end),
+        });
+      } else {
+        setDateRange({});
+      }
+
       setDisplayMember(response.data.data);
     } catch (err) {
       console.log({ error: err });
@@ -258,6 +313,148 @@ const Invitation = ({ route, navigation }: Props) => {
     } catch (err) {}
   };
 
+  const calculateFreeDateMatches = async () => {
+    try {
+      const allDate: { start: string; end: string }[][] = [];
+      displayMember.forEach((item) => {
+        allDate.push(item.date);
+      });
+
+      let arrayDate = allDate[0] || [];
+
+      for (let i = 0; i < allDate.length - 1; i++) {
+        const copyArrayDate = [...arrayDate];
+        arrayDate = [];
+        for (let j = 0; j < copyArrayDate.length; j++) {
+          const firstDateStart = new Date(copyArrayDate[j].start);
+          const firstDateEnd = new Date(copyArrayDate[j].end);
+          for (let z = 0; z < allDate[i + 1].length; z++) {
+            const secondDateStart = new Date(allDate[i + 1][z].start);
+            const secondDateEnd = new Date(allDate[i + 1][z].end);
+            // check did date intersect
+            if (
+              firstDateStart <= secondDateEnd &&
+              firstDateEnd >= secondDateStart
+            ) {
+              // Find the minimum date end
+              const minDate =
+                secondDateEnd <= firstDateEnd ? secondDateEnd : firstDateEnd;
+
+              // Find the maximum date start
+              const maxDate =
+                secondDateStart >= firstDateStart
+                  ? secondDateStart
+                  : firstDateStart;
+
+              arrayDate.push({
+                start: maxDate.toDateString(),
+                end: minDate.toDateString(),
+              });
+            }
+          }
+        }
+      }
+
+      // reset value if date change and current date didnt in filter
+      let reset = true;
+
+      arrayDate.forEach((range) => {
+        if (dateRange.startDate && dateRange.endDate) {
+          if (
+            new Date(range.start) <= dateRange.startDate &&
+            new Date(range.end) >= dateRange.endDate
+          ) {
+            reset = false;
+          }
+        }
+      });
+
+      if (reset || arrayDate.length === 0) {
+        await axios.post(
+          `${API_URL}/trip/date`,
+          {
+            tripId,
+            start: "",
+            end: "",
+          },
+          {
+            headers: {
+              authorization: token,
+            },
+          }
+        );
+      }
+
+      setFilterDate(arrayDate);
+    } catch (err) {
+      console.log("calculateFreeDateMatches", err);
+    }
+  };
+
+  const handleDatePickerFilter = (date: Date) => {
+    let result = false;
+    filterDate.forEach((range) => {
+      if (new Date(range.start) <= date && new Date(range.end) >= date) {
+        result = true;
+      }
+    });
+    return result;
+  };
+
+  const onSelectDatePicker = async (range: CalendarRange<Date>) => {
+    try {
+      setDateRange({ startDate: range.startDate, endDate: range.endDate });
+
+      if (range.startDate && range.endDate) {
+        await axios.post(
+          `${API_URL}/trip/date`,
+          {
+            tripId,
+            start: range.startDate.toDateString(),
+            end: range.endDate.toDateString(),
+          },
+          {
+            headers: {
+              authorization: token,
+            },
+          }
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const showDatePicker = () => {
+    let validate = new Array(displayMember.length).fill(0);
+
+    for (let i = 0; i < displayMember.length; i++) {
+      displayMember[i].date.forEach((range) => {
+        if (validate[i] !== 1 && range.start !== "" && range.end !== "") {
+          validate[i] = 1;
+        }
+      });
+    }
+    return validate.every((item) => item === 1);
+  };
+
+  const onPressNextButton = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        {
+          tripId,
+          stage: "placeSelect",
+        },
+        {
+          headers: {
+            authorization: token,
+          },
+        }
+      );
+    } catch (err) {}
+  };
+
   return (
     <>
       <View
@@ -323,9 +520,45 @@ const Invitation = ({ route, navigation }: Props) => {
             shadowRadius: 4,
           }}
         >
+          {/* date picker for trip */}
+          {showDatePicker() && (
+            <View
+              className={`${
+                ownerOfTrip ? "h-[87px]" : "h-[120px]"
+              } bg-white px-[16px] pt-[16px] flex-col`}
+            >
+              <Text className="text-[16px] mb-[10px]">
+                ช่วงเวลาที่ว่างตรงกัน
+              </Text>
+              <View className=" self-center ">
+                <RangeDatepicker
+                  range={dateRange}
+                  onSelect={onSelectDatePicker}
+                  style={{ width: 256 }}
+                  filter={handleDatePickerFilter}
+                  disabled={!ownerOfTrip}
+                  placeholder={() => (
+                    <View className="flex-row items-center">
+                      <Text className="text-[#00000040] w-[91px]">
+                        วันเริ่มต้น
+                      </Text>
+                      <HalfArrowRight />
+                      <Text className="text-[#00000040]">วันสุดท้าย</Text>
+                    </View>
+                  )}
+                />
+              </View>
+            </View>
+          )}
+          {/* button go to next stage */}
           {ownerOfTrip && (
             <View className="h-[100px] bg-[#FFF] p-[16px] flex-row justify-center">
-              <ButtonCustom width="w-[351px]" title="ต่อไป" disable={true} />
+              <ButtonCustom
+                width="w-[351px]"
+                title="ต่อไป"
+                disable={Object.keys(dateRange).length === 0}
+                onPress={onPressNextButton}
+              />
             </View>
           )}
         </View>

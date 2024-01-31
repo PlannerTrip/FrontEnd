@@ -28,6 +28,7 @@ import { AuthData } from "./contexts/authContext";
 
 import * as eva from "@eva-design/eva";
 import { ApplicationProvider, Layout } from "@ui-kitten/components";
+import PlaceSelect from "./screens/placeSelect";
 
 const prefix = Linking.createURL("/");
 
@@ -113,6 +114,7 @@ export default function App() {
               <>
                 <Stack.Screen name="tab" component={Tab} />
                 <Stack.Screen name="invitation" component={Invitation} />
+                <Stack.Screen name="placeSelect" component={PlaceSelect} />
                 <Stack.Screen
                   name="placeInformation"
                   component={PlaceInformation}
