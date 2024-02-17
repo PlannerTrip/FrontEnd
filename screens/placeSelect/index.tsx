@@ -88,7 +88,9 @@ const PlaceSelect = ({ route, navigation }: Props) => {
 
   const onPressNextButton = () => {};
 
-  const onPressAddPlace = () => {};
+  const onPressAddPlace = () => {
+    navigation.navigate("placeDiscovery", { tripId });
+  };
 
   return (
     <>

@@ -71,11 +71,13 @@ export default function App() {
     try {
       const localToken = await SecureStore.getItemAsync("key");
       if (!localToken) throw new Error("can't get token");
+      console.log(API_URL);
       const response = await axios.get(`${API_URL}/authCheck`, {
         headers: {
           authorization: localToken,
         },
       });
+      console.log("authCheck");
       setAuthInformation({
         authStatus: SUCCESS,
         token: localToken,

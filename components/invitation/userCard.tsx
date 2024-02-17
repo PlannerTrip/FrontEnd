@@ -1,3 +1,4 @@
+import { useContext, useEffect, useState } from "react";
 import { View, Text, Image, Pressable } from "react-native";
 
 // ================= type =================
@@ -10,12 +11,12 @@ import Close from "../../assets/invitation/Close.svg";
 import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
 
 import { REMOVEFRIEND } from "../../utils/const";
+import { AuthData } from "../../contexts/authContext";
 
 import { CalendarRange, RangeDatepicker } from "@ui-kitten/components";
-import { useContext, useEffect, useState } from "react";
+
 import axios from "axios";
 import { API_URL } from "@env";
-import { AuthData } from "../../contexts/authContext";
 
 const UserCard = ({
   data,

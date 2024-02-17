@@ -9,11 +9,11 @@ import { AuthData } from "../../contexts/authContext";
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 
-import ButtonCustom from "../../components/button";
 import axios from "axios";
 import { API_URL } from "@env";
 import { Socket, io } from "socket.io-client";
 import { useFocusEffect } from "@react-navigation/native";
+import { Image } from "react-native";
 
 type Props = NativeStackScreenProps<StackParamList, "placeDiscovery">;
 
@@ -23,7 +23,9 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
   const { userId, token } = useContext(AuthData);
   const { tripId } = route.params;
 
-  const [owner, setOwner] = useState(true);
+  const suggest = "suggest";
+  const bookmark = "bookmark";
+  const [currentTab, setCurrentTab] = useState(suggest);
 
   // ====================== useFocusEffect ======================
 
@@ -57,25 +59,8 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
     });
   };
 
-  const onPressBack = async () => {
-    try {
-      if (owner) {
-        await axios.post(
-          `${API_URL}/trip/stage`,
-          {
-            tripId,
-            stage: "invitation",
-          },
-          {
-            headers: {
-              authorization: token,
-            },
-          }
-        );
-      } else {
-        // user click show modal confirm leave trip
-      }
-    } catch (err) {}
+  const onPressBack = () => {
+    navigation.navigate("placeSelect", { tripId });
   };
 
   return (
@@ -87,7 +72,54 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
           paddingRight: insets.right,
         }}
         className="bg-[#FFF] h-[100%]"
-      ></View>
+      >
+        {/* header */}
+        <View className="h-[80px] items-end px-[16px] pt-[16px] bg-[#FFF]  flex-row justify-between">
+          <Pressable onPress={onPressBack} className="mb-[16px]">
+            <ArrowLeft />
+          </Pressable>
+          {/* tab */}
+          <View className="w-[262px] h-[80px] items-end flex-row justify-between">
+            <Pressable
+              onPress={() => {
+                setCurrentTab(suggest);
+              }}
+              className={`w-[123px] h-[48px] ${
+                currentTab === suggest ? "border-b-[2px] border-[#FFC502]" : ""
+              } flex justify-center items-center`}
+            >
+              <Text
+                className={`${
+                  currentTab === suggest ? "text-[#FFC502] " : ""
+                } font-bold`}
+              >
+                แนะนำ
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setCurrentTab(bookmark);
+              }}
+              className={`w-[123px] h-[48px]    flex justify-center items-center  ${
+                currentTab === bookmark ? "border-b-[2px] border-[#FFC502]" : ""
+              }`}
+            >
+              <Text
+                className={` ${
+                  currentTab === bookmark ? "text-[#FFC502] " : ""
+                } font-bold`}
+              >
+                บุ๊กมาร์ก
+              </Text>
+            </Pressable>
+          </View>
+          <Pressable className="mb-[16px]">
+            <Image source={require("../../assets/placeDiscovery/search.png")} />
+          </Pressable>
+        </View>
+        {/* content */}
+        <ScrollView className="bg-[#F5F5F5]"></ScrollView>
+      </View>
     </>
   );
 };
