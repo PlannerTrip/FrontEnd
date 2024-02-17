@@ -1,3 +1,4 @@
+import { useContext, useEffect, useState } from "react";
 import { View, Text, Image, Pressable } from "react-native";
 
 // ================= type =================
@@ -7,21 +8,15 @@ import { MemberData } from "../../interface/invitation";
 import Avatar from "../../assets/avatar.svg";
 import PlusButton from "../../assets/invitation/PlusButton.svg";
 import Close from "../../assets/invitation/Close.svg";
-
-import { Socket } from "socket.io-client";
+import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
 
 import { REMOVEFRIEND } from "../../utils/const";
+import { AuthData } from "../../contexts/authContext";
 
-import {
-  CalendarRange,
-  Datepicker,
-  Layout,
-  RangeDatepicker,
-} from "@ui-kitten/components";
-import { useContext, useEffect, useState } from "react";
+import { CalendarRange, RangeDatepicker } from "@ui-kitten/components";
+
 import axios from "axios";
 import { API_URL } from "@env";
-import { AuthData } from "../../contexts/authContext";
 
 const UserCard = ({
   data,
@@ -124,7 +119,7 @@ const UserCard = ({
         );
       }
     } catch (err) {
-      console.log(err.response.data);
+      console.log(err);
     }
   };
 
@@ -189,6 +184,13 @@ const UserCard = ({
             }}
             disabled={!ownerOfCard}
             style={{ width: 256 }}
+            placeholder={() => (
+              <View className="flex-row items-center">
+                <Text className="text-[#00000040] w-[91px]">วันเริ่มต้น</Text>
+                <HalfArrowRight />
+                <Text className="text-[#00000040]">วันสุดท้าย</Text>
+              </View>
+            )}
           />
           {/* remove button */}
           {ownerOfCard && index !== 0 && (

@@ -28,6 +28,8 @@ import { AuthData } from "./contexts/authContext";
 
 import * as eva from "@eva-design/eva";
 import { ApplicationProvider, Layout } from "@ui-kitten/components";
+import PlaceSelect from "./screens/placeSelect";
+import PlaceDiscovery from "./screens/placeDiscovery";
 
 const prefix = Linking.createURL("/");
 
@@ -69,11 +71,13 @@ export default function App() {
     try {
       const localToken = await SecureStore.getItemAsync("key");
       if (!localToken) throw new Error("can't get token");
+      console.log(API_URL);
       const response = await axios.get(`${API_URL}/authCheck`, {
         headers: {
           authorization: localToken,
         },
       });
+      console.log("authCheck");
       setAuthInformation({
         authStatus: SUCCESS,
         token: localToken,
@@ -113,9 +117,14 @@ export default function App() {
               <>
                 <Stack.Screen name="tab" component={Tab} />
                 <Stack.Screen name="invitation" component={Invitation} />
+                <Stack.Screen name="placeSelect" component={PlaceSelect} />
                 <Stack.Screen
                   name="placeInformation"
                   component={PlaceInformation}
+                />
+                <Stack.Screen
+                  name="placeDiscovery"
+                  component={PlaceDiscovery}
                 />
               </>
             ) : (
