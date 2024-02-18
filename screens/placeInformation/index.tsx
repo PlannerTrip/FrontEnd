@@ -33,7 +33,8 @@ import { useFocusEffect } from "@react-navigation/native"
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { StackParamList } from "../../interface/navigate"
-import ImageFlatList from "../../components/placeInformation/imageFlatList"
+
+import FlatListCustom from "../../components/flatList"
 
 type Props = NativeStackScreenProps<StackParamList, "placeInformation">
 
@@ -41,7 +42,6 @@ const PlaceInformation = ({ navigation, route }: Props) => {
     const insets = useSafeAreaInsets()
 
     const { placeId, type, forecastDate, forecastDuration } = route.params
-    console.log(insets.top)
 
     const marginTop = `mt-[-${insets.top}px]`
 
@@ -58,7 +58,6 @@ const PlaceInformation = ({ navigation, route }: Props) => {
         tag: [],
         weekDay: [],
     })
-    const { width, height } = Dimensions.get("screen")
 
     const [isCheckIn, setIsCheckIn] = useState(false)
 
@@ -132,14 +131,9 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                     >
                         <Arrow_left_brown />
                     </Pressable>
-                    <FlatList
-                        data={data.coverImg}
-                        keyExtractor={(item) => item}
-                        renderItem={renderItem}
-                        horizontal
-                        pagingEnabled
-                        snapToAlignment="center"
-                        showsHorizontalScrollIndicator={false}
+                    <FlatListCustom
+                        item={data.coverImg}
+                        marginTop={-insets.top}
                     />
                     <Text className="absolute z-[10] bottom-[16px] left-[16px] text-[24px] text-[#FFFFFF] font-bold">
                         {data.placeName}
