@@ -22,9 +22,6 @@ import Map from "../../assets/placeInformation/Map.svg"
 import Pin from "../../assets/placeInformation/Pin.svg"
 import TelephoneActive from "../../assets/placeInformation/TelephoneActive.svg"
 import WebsiteActive from "../../assets/placeInformation/WebsiteActive.svg"
-import Star_Full from "../../assets/placeInformation/Star_Full.svg"
-import Star_None from "../../assets/placeInformation/Star_None.svg"
-import Star_Half from "../../assets/placeInformation/Star_Full.svg"
 
 import * as SecureStore from "expo-secure-store"
 import { API_URL } from "@env"
@@ -35,6 +32,10 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 import { StackParamList } from "../../interface/navigate"
 
 import FlatListCustom from "../../components/flatList"
+import Star from "../../components/placeInformation/star"
+import PercentageBar from "../../components/placeInformation/percentageBar"
+import ButtonCustom from "../../components/button"
+import Review from "../../components/placeInformation/review"
 
 type Props = NativeStackScreenProps<StackParamList, "placeInformation">
 
@@ -42,8 +43,6 @@ const PlaceInformation = ({ navigation, route }: Props) => {
     const insets = useSafeAreaInsets()
 
     const { placeId, type, forecastDate, forecastDuration } = route.params
-
-    const marginTop = `mt-[-${insets.top}px]`
 
     const [data, setData] = useState({
         placeName: "",
@@ -97,18 +96,9 @@ const PlaceInformation = ({ navigation, route }: Props) => {
         navigation.goBack()
     }
 
-    const renderItem = ({ item }: { item: string }) => (
-        <View className={`w-[430px] h-[332px] ${marginTop} mt-[-59px] `}>
-            <Image
-                source={{
-                    uri: item,
-                }}
-                className="w-[100%] h-[100%]"
-            />
-        </View>
-    )
-
     const handleCheckIn = () => {}
+
+    const handleReview = () => {}
 
     return (
         <View
@@ -138,13 +128,6 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                     <Text className="absolute z-[10] bottom-[16px] left-[16px] text-[24px] text-[#FFFFFF] font-bold">
                         {data.placeName}
                     </Text>
-                    {/* <View className="flex flex-row gap-[3px]">
-                    {data.map((item) => {
-                        return (
-                            <View className="w-[5px] h-[5px] rounded-[1px] bg-[#00000033]"></View>
-                        )
-                    })}
-                </View> */}
                 </View>
 
                 <View className="p-[16px] ">
@@ -202,10 +185,13 @@ const PlaceInformation = ({ navigation, route }: Props) => {
 
                         <View className="mt-[8px]">
                             {Object.keys(data.weekDay).map((dayKey) => {
-                                console.log(dayKey)
                                 const dayInfo = data.weekDay[dayKey]
+                                console.log(dayKey, dayInfo, data.weekDay)
                                 return (
-                                    <View className="flex flex-row items-center mt-[4px]">
+                                    <View
+                                        className="flex flex-row items-center mt-[4px]"
+                                        key={dayKey}
+                                    >
                                         <Text className="text-[16px] w-[100px]">
                                             {dayInfo.day}
                                         </Text>
@@ -223,41 +209,68 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                             จำนวนคนที่เคยมาเช็กอิน 1,234 คน
                         </Text>
                         {isCheckIn ? (
-                            <View className="mt-[8px] h-[48px] p-[12px] bg-[#FFE89A] flex-row justify-center items-center rounded ">
-                                <Text className="text-white text-[16px] font-bold ">
-                                    เคยเช็กอินแล้ว
-                                </Text>
-                            </View>
+                            <ButtonCustom
+                                title="เคยเช็กอินแล้ว"
+                                disable={true}
+                            />
                         ) : (
-                            <Pressable onPress={handleCheckIn}>
-                                <View className="mt-[8px] h-[48px] p-[12px] bg-[#FFC502] flex-row justify-center items-center rounded ">
-                                    <Text className="text-white text-[16px] font-bold ">
-                                        เช็กอิน
-                                    </Text>
-                                </View>
-                            </Pressable>
+                            <ButtonCustom title="เช็กอิน" />
                         )}
                     </View>
 
-                    <View className="mt-[16px] flex flex-col ">
+                    <View className="mt-[16px] ">
                         <Text className="text-[16px] font-bold">
                             รีวืวสถานที่
                         </Text>
-
-                        <View className="flex flex-row">
-                            <View className="w-[150px] items-center">
-                                <Text>5.0</Text>
+                        <View className="flex flex-row mt-[8px]">
+                            <View className="flex flex-col w-[150px]">
                                 <View className="flex flex-row">
-                                    <Star_Full />
-                                    <Star_Full />
-                                    <Star_Full />
-                                    <Star_Full />
-                                    <Star_Full />
+                                    <View className="w-[150px] items-center flex flex-col ">
+                                        <Text className="text-[24px] font-bold mb-[7px]">
+                                            5.0
+                                        </Text>
+                                        <Star score={4.3} />
+                                        <Text className="mt-[7px]">
+                                            543 รีวิว
+                                        </Text>
+                                    </View>
                                 </View>
-                                <Text>543 รีวิว</Text>
                             </View>
-                            <View className=""></View>
+                            <View className="ml-[8px] flex flex-grow">
+                                <PercentageBar starText={5} percentage={10} />
+                                <PercentageBar starText={4} percentage={10} />
+                                <PercentageBar starText={3} percentage={10} />
+                                <PercentageBar starText={2} percentage={10} />
+                                <PercentageBar starText={1} percentage={10} />
+                            </View>
                         </View>
+
+                        <View className=" items-center flex">
+                            <ButtonCustom
+                                title="เขียนรีวิว"
+                                fill="outline"
+                                size="small"
+                                width="w-[100px]"
+                                onPress={handleReview}
+                            />
+                        </View>
+                    </View>
+
+                    <View className="mt-[16px] border-t-[0.5px] border-[#ABABB4]">
+                        <Review
+                            name="Winter"
+                            profilePicture="https://tatapi.tourismthailand.org/tatfs/Image/custompoi/picture/P03000001_5.jpg"
+                            score={4}
+                            date={new Date()}
+                            text="รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว รีวิว"
+                            picture={[
+                                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/picture/P03000001_1.jpg",
+                                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/picture/P03000001_2.jpg",
+                                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/picture/P03000001_3.jpg",
+                                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/picture/P03000001_4.jpg",
+                                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/picture/P03000001_5.jpg",
+                            ]}
+                        />
                     </View>
                 </View>
             </ScrollView>

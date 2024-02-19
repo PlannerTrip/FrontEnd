@@ -1,23 +1,31 @@
 import { LinearGradient } from "expo-linear-gradient"
 import React, { useState } from "react"
-import { View, Image, Dimensions, FlatList, Text } from "react-native"
+import { View, Image, FlatList } from "react-native"
 
 const FlatListCustom = ({
     item,
-    marginTop,
+    marginTop = 0,
+    width = 430,
+    height = 332,
+    indicator = 16,
 }: {
     item: string[]
-    marginTop: number
+    marginTop?: number
+    width?: number
+    height?: number
+    indicator?: number
 }) => {
     const [currentPage, setCurrentPage] = useState(0)
-    const { width, height } = Dimensions.get("screen")
+
+    console.log(item)
 
     const renderItem = ({ item }: { item: string }) => (
         <View
-            className={`w-[430px] h-[332px] ] `}
             style={{
                 marginTop: marginTop,
                 alignItems: "center",
+                width: width,
+                height: height,
             }}
         >
             <Image
@@ -55,7 +63,7 @@ const FlatListCustom = ({
                     style={{
                         position: "absolute",
                         flexDirection: "row",
-                        left: 16,
+                        left: indicator,
                         bottom: 4,
                     }}
                 >
