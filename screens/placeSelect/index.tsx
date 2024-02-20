@@ -62,8 +62,14 @@ const PlaceSelect = ({ route, navigation }: Props) => {
       console.log("Socket Error", error.message);
     });
 
-    socket.on("addPlace", (data: any) => {
+    socket.on("addPlace", (data: Place) => {
       setPlaces((places) => [...places, data]);
+    });
+
+    socket.on("removePlace", (data: { placeId: string }) => {
+      setPlaces((places) =>
+        places.filter((place) => place.placeId !== data.placeId)
+      );
     });
 
     socket.on("updateStage", (data: { stage: string }) => {
@@ -136,12 +142,13 @@ const PlaceSelect = ({ route, navigation }: Props) => {
           </Text>
         </View>
         {/* content */}
-        <ScrollView className=" bg-[#EEEEEE] px-[16px] ">
-          <View className="mt-[16px]">
+        <ScrollView className=" bg-[#EEEEEE]  ">
+          <View className="mt-[16px] flex-col items-center">
             {places.map((place) => (
               <PlaceCard
                 key={place.placeId}
                 forecast={place.forecasts}
+                coverImg={place.coverImg}
                 introduction={place.introduction}
                 location={{
                   province: place.location.province,
@@ -155,8 +162,11 @@ const PlaceSelect = ({ route, navigation }: Props) => {
             ))}
           </View>
           {/* add button */}
-          <Pressable onPress={onPressAddPlace}>
-            <View className="border border-[#FFC502] rounded flex-row justify-center items-center h-[48px] bg-[#FFF] mb-[16px]">
+          <Pressable
+            onPress={onPressAddPlace}
+            className="flex-col items-center"
+          >
+            <View className="border border-[#FFC502] rounded flex-row  w-[358px] justify-center items-center h-[48px] bg-[#FFF] mb-[16px]">
               <Plus />
               <Text className="ml-[4px] text-[#FFC502] font-bold">
                 เพิ่มสถานที่ท่องเที่ยว

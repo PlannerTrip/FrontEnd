@@ -29,6 +29,7 @@ export interface PlaceCardInput {
   location: { district: string; province: string };
   selectBy: string[];
   tripId: string;
+  coverImg: string[];
 }
 
 export interface Forecast {
