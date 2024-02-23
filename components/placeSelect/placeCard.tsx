@@ -1,10 +1,15 @@
 import React from "react";
 
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 
 import { PlaceCardInput } from "../../interface/placeSelect";
 
 import RemoveCircle from "../../assets/placeCard/removeCircle.svg";
+import PlusCircle from "../../assets/placeCard/AddCircle.svg";
+import CorrectCircle from "../../assets/placeCard/correct.svg";
+
+import ForecastCustom from "../forecast";
+import MiniProfileCustom from "../miniProfile";
 
 const PlaceCard = ({
   name,
@@ -12,9 +17,13 @@ const PlaceCard = ({
   tag,
   forecast,
   location,
-  selectBy,
+  selectBy = [],
   tripId,
   coverImg,
+  onPressIcon,
+  showIcon = true,
+  showSelectBy = true,
+  iconType = "mark",
 }: PlaceCardInput) => {
   const Tag = ({ tagName }: { tagName: string }) => {
     return (
@@ -25,7 +34,7 @@ const PlaceCard = ({
   };
 
   return (
-    <View className="mb-[16px] w-[358px] h-[230px] bg-white rounded-[5px] border-[2px] p-[8px]">
+    <View className=" w-[358px] bg-white rounded-[5px] border-[2px] p-[8px]">
       <View className="flex-row">
         {/* cover img */}
         <View className="flex justify-center items-center overflow-hidden border w-[128px] h-[128px] rounded-[5px] mr-[16px]">
@@ -40,7 +49,19 @@ const PlaceCard = ({
             >
               {name}
             </Text>
-            <RemoveCircle />
+            {showIcon && (
+              <Pressable onPress={onPressIcon}>
+                {iconType === "mark" ? (
+                  <RemoveCircle />
+                ) : iconType === "plus" ? (
+                  <PlusCircle />
+                ) : iconType === "correct" ? (
+                  <CorrectCircle />
+                ) : (
+                  <></>
+                )}
+              </Pressable>
+            )}
           </View>
           {/* introduction */}
           {introduction !== "" && (
@@ -51,13 +72,46 @@ const PlaceCard = ({
             </View>
           )}
           {/* tag */}
-          <View className="flex-row flex-wrap h-[78px] overflow-hidden ">
+          <View
+            className={`flex-row flex-wrap ${
+              introduction === "" ? "h-[78px]" : "h-[26px]"
+            } overflow-hidden `}
+          >
             {tag.map((tagName) => (
-              <Tag tagName={tagName} />
+              <Tag tagName={tagName} key={tagName} />
             ))}
+          </View>
+          {/* location */}
+          <View className="flex-row mt-[3px] items-center ">
+            <Text className="text-[#FFC502] text-[12px]">
+              {location.district},{location.province}
+            </Text>
           </View>
         </View>
       </View>
+      {/* forecast */}
+      {forecast.length !== 0 && (
+        <View className="flex-row  mt-[8px]">
+          {forecast.map((item) => (
+            <View key={item.time} className="mr-[37.25px]">
+              <ForecastCustom predict={item.data.cond} date={item.time} />
+            </View>
+          ))}
+        </View>
+      )}
+      {/* selectBy */}
+      {showSelectBy && (
+        <View className="flex-row mt-[8px] items-center">
+          <Text className="text-[#FFC502] text-[12px]">เลือกโดย</Text>
+          {selectBy.map((item) => (
+            <MiniProfileCustom
+              profileUrl={item.userprofile}
+              username={item.username}
+              key={item.username}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };

@@ -1,11 +1,13 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useContext, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { StackParamList } from "../../interface/navigate";
 import { AuthData } from "../../contexts/authContext";
+
+import * as SecureStore from "expo-secure-store";
 
 // ====================== svg ======================
 
@@ -18,6 +20,9 @@ import { API_URL } from "@env";
 import { Socket, io } from "socket.io-client";
 import { Place } from "../../interface/placeSelect";
 import PlaceCard from "../../components/placeSelect/placeCard";
+import ConfirmModal from "../../components/confirmModal";
+import Loading from "../Loading";
+import { LOADING, SUCCESS } from "../../utils/const";
 
 type Props = NativeStackScreenProps<StackParamList, "placeSelect">;
 
@@ -30,23 +35,35 @@ const PlaceSelect = ({ route, navigation }: Props) => {
 
   const [owner, setOwner] = useState(false);
   const [places, setPlaces] = useState<Place[]>([]);
+  const [confirmModal, setConfirmModal] = useState({
+    display: false,
+    placeId: "",
+    placeName: "",
+  });
+  const [status, setStatus] = useState(LOADING);
+
+  const isFocused = useIsFocused();
 
   // ====================== useFocusEffect ======================
 
   useFocusEffect(
     useCallback(() => {
-      const socket = io(`${API_URL}`, {
-        transports: ["websocket"],
-      });
-      handleSocket(socket);
+      if (isFocused) {
+        setStatus(LOADING);
+        setPlaces([]);
+        const socket = io(`${API_URL}`, {
+          transports: ["websocket"],
+        });
+        handleSocket(socket);
 
-      // get place
-      getPlace();
-      return () => {
-        socket.disconnect();
-        console.log("didnt focus");
-      };
-    }, [tripId])
+        // get place
+        getPlace();
+        return () => {
+          socket.disconnect();
+          console.log("didnt focus");
+        };
+      }
+    }, [tripId, isFocused])
   );
 
   // ====================== function ======================
@@ -72,13 +89,52 @@ const PlaceSelect = ({ route, navigation }: Props) => {
       );
     });
 
+    socket.on(
+      "updatePlace",
+      (data: {
+        placeId: string;
+        selectBy: { username: string; userprofile: string; userId: string }[];
+      }) => {
+        console.log(data);
+        setPlaces((places) =>
+          places.map((place) => {
+            if (place.placeId === data.placeId) {
+              return { ...place, selectBy: data.selectBy };
+            }
+            return place;
+          })
+        );
+      }
+    );
+
     socket.on("updateStage", (data: { stage: string }) => {
       if (data.stage === "invitation") {
         navigation.navigate("invitation", {
           tripId: tripId,
         });
+      } else if (data.stage === "planSelect") {
+        navigation.navigate("planSelect", {
+          tripId: tripId,
+        });
       }
     });
+  };
+
+  const getPlace = async () => {
+    try {
+      const response: AxiosResponse<{ places: Place[]; owner: boolean }> =
+        await axios.get(`${API_URL}/trip/information`, {
+          params: { tripId: tripId, type: "allPlace" },
+          headers: {
+            authorization: token,
+          },
+        });
+      setPlaces(response.data.places);
+      setOwner(response.data.owner);
+      setStatus(SUCCESS);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const onPressBack = async () => {
@@ -102,24 +158,59 @@ const PlaceSelect = ({ route, navigation }: Props) => {
     } catch (err) {}
   };
 
-  const getPlace = async () => {
+  const onPressNextButton = async () => {
     try {
-      const response: AxiosResponse<{ places: Place[]; owner: boolean }> =
-        await axios.get(`${API_URL}/trip/information`, {
-          params: { tripId: tripId, type: "allPlace" },
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        { stage: "planSelect", tripId: tripId },
+        {
           headers: {
             authorization: token,
           },
-        });
-      setPlaces(response.data.places);
-      setOwner(response.data.owner);
-    } catch (err) {}
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
   };
-
-  const onPressNextButton = () => {};
 
   const onPressAddPlace = () => {
     navigation.navigate("placeDiscovery", { tripId });
+  };
+
+  const onPressRemove = async (placeId: string, placeName: string) => {
+    try {
+      // SecureStore.deleteItemAsync("key");
+      if (owner) {
+        setConfirmModal({ display: true, placeId: placeId, placeName });
+      } else {
+        await axios.post(
+          `${API_URL}/trip/place`,
+          { placeId: placeId, tripId: tripId },
+          {
+            headers: {
+              authorization: token,
+            },
+          }
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressConfirmRemove = async () => {
+    try {
+      await axios.delete(`${API_URL}/trip/place`, {
+        data: { placeId: confirmModal.placeId, tripId: tripId },
+        headers: {
+          authorization: token,
+        },
+      });
+      setConfirmModal({ display: false, placeId: "", placeName: "" });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -142,38 +233,53 @@ const PlaceSelect = ({ route, navigation }: Props) => {
           </Text>
         </View>
         {/* content */}
-        <ScrollView className=" bg-[#EEEEEE]  ">
-          <View className="mt-[16px] flex-col items-center">
-            {places.map((place) => (
-              <PlaceCard
-                key={place.placeId}
-                forecast={place.forecasts}
-                coverImg={place.coverImg}
-                introduction={place.introduction}
-                location={{
-                  province: place.location.province,
-                  district: place.location.district,
-                }}
-                name={place.placeName}
-                tag={place.tag}
-                selectBy={place.selectBy}
-                tripId={tripId}
-              />
-            ))}
-          </View>
-          {/* add button */}
-          <Pressable
-            onPress={onPressAddPlace}
-            className="flex-col items-center"
+        {status === LOADING ? (
+          <View
+            className={`bg-[#F5F5F5] grow flex justify-center items-center`}
           >
-            <View className="border border-[#FFC502] rounded flex-row  w-[358px] justify-center items-center h-[48px] bg-[#FFF] mb-[16px]">
-              <Plus />
-              <Text className="ml-[4px] text-[#FFC502] font-bold">
-                เพิ่มสถานที่ท่องเที่ยว
-              </Text>
+            <Loading />
+          </View>
+        ) : (
+          <ScrollView className=" bg-[#EEEEEE]  ">
+            <View className="mt-[16px] flex-col items-center">
+              {places.map((place) => (
+                <View className="mb-[16px]" key={place.placeId}>
+                  <PlaceCard
+                    forecast={place.forecasts}
+                    coverImg={place.coverImg}
+                    introduction={place.introduction}
+                    location={{
+                      province: place.location.province,
+                      district: place.location.district,
+                    }}
+                    name={place.placeName}
+                    tag={place.tag}
+                    selectBy={place.selectBy}
+                    tripId={tripId}
+                    onPressIcon={() => {
+                      onPressRemove(place.placeId, place.placeName);
+                    }}
+                    showIcon={
+                      place.selectBy.some((id) => userId === id.userId) || owner
+                    }
+                  />
+                </View>
+              ))}
             </View>
-          </Pressable>
-        </ScrollView>
+            {/* add button */}
+            <Pressable
+              onPress={onPressAddPlace}
+              className="flex-col items-center"
+            >
+              <View className="border border-[#FFC502] rounded flex-row  w-[358px] justify-center items-center h-[48px] bg-[#FFF] mb-[16px]">
+                <Plus />
+                <Text className="ml-[4px] text-[#FFC502] font-bold">
+                  เพิ่มสถานที่ท่องเที่ยว
+                </Text>
+              </View>
+            </Pressable>
+          </ScrollView>
+        )}
         {/* footer */}
         <View
           style={{
@@ -189,12 +295,28 @@ const PlaceSelect = ({ route, navigation }: Props) => {
             <ButtonCustom
               width="w-[351px]"
               title="ต่อไป"
-              disable={true}
+              disable={places.length === 0}
               onPress={onPressNextButton}
             />
           </View>
         </View>
       </View>
+      {confirmModal.display && (
+        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+          <ConfirmModal
+            title={
+              <Text className="font-bold">
+                ลบ "{confirmModal.placeName}" ออกจากทริป
+              </Text>
+            }
+            confirmTitle="ลบ"
+            onPressCancel={() => {
+              setConfirmModal({ display: false, placeId: "", placeName: "" });
+            }}
+            onPressConfirm={onPressConfirmRemove}
+          />
+        </View>
+      )}
     </>
   );
 };

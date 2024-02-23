@@ -30,6 +30,7 @@ import * as eva from "@eva-design/eva";
 import { ApplicationProvider, Layout } from "@ui-kitten/components";
 import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
+import PlanSelect from "./screens/planSelect";
 
 const prefix = Linking.createURL("/");
 
@@ -71,7 +72,6 @@ export default function App() {
     try {
       const localToken = await SecureStore.getItemAsync("key");
       if (!localToken) throw new Error("can't get token");
-      console.log(API_URL);
       const response = await axios.get(`${API_URL}/authCheck`, {
         headers: {
           authorization: localToken,
@@ -88,14 +88,19 @@ export default function App() {
     } catch (error) {
       setIsLoading(false);
       console.log(error);
-      if (axios.isAxiosError(error) && error.response) {
-        setAuthInformation({
-          authStatus: FAIL,
-          token: "",
-          userId: "",
-        });
-        console.log(error.response.data);
-      }
+      setAuthInformation({
+        authStatus: FAIL,
+        token: "",
+        userId: "",
+      });
+      // if (axios.isAxiosError(error) && error.response) {
+      //   setAuthInformation({
+      //     authStatus: FAIL,
+      //     token: "",
+      //     userId: "",
+      //   });
+      //   console.log(error.response.data);
+      // }
     }
   };
 
@@ -105,6 +110,7 @@ export default function App() {
         value={{
           ...authInformation,
           setIsSignedIn: setIsSignedIn,
+          setAuthInformation: setAuthInformation,
         }}
       >
         <NavigationContainer linking={linking}>
@@ -126,6 +132,7 @@ export default function App() {
                   name="placeDiscovery"
                   component={PlaceDiscovery}
                 />
+                <Stack.Screen name="planSelect" component={PlanSelect} />
               </>
             ) : (
               <>
