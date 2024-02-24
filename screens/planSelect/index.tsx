@@ -1,11 +1,12 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useRef, useState } from "react";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { StackParamList } from "../../interface/navigate";
 import { AuthData } from "../../contexts/authContext";
+import * as Location from "expo-location";
 
 // ====================== svg ======================
 
@@ -18,6 +19,19 @@ import { Socket, io } from "socket.io-client";
 import Loading from "../Loading";
 import { LOADING, SUCCESS } from "../../utils/const";
 
+import {
+  GestureDetector,
+  Gesture,
+  FlatList,
+} from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { Place, Plan } from "../../interface/planSelect";
+import PlaceCard from "../../components/planSelect/placeCard";
+import PlanCard from "../../components/planSelect/planCard";
+
 type Props = NativeStackScreenProps<StackParamList, "planSelect">;
 
 const PlanSelect = ({ route, navigation }: Props) => {
@@ -27,14 +41,22 @@ const PlanSelect = ({ route, navigation }: Props) => {
 
   const { tripId } = route.params;
 
-  const [owner, setOwner] = useState(false);
-  const [plan, setPlan] = useState([]);
+  const [owner, setOwner] = useState(true);
+  const [plan, setPlan] = useState<Plan[]>([]);
   const [confirmModal, setConfirmModal] = useState({
     display: false,
     placeId: "",
     placeName: "",
   });
   const [status, setStatus] = useState(SUCCESS);
+
+  const [places, setPlaces] = useState<Place[]>([]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [height, setHeight] = useState(0);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  const [errorMsg, setErrorMsg] = useState("");
 
   const isFocused = useIsFocused();
 
@@ -43,6 +65,8 @@ const PlanSelect = ({ route, navigation }: Props) => {
   useFocusEffect(
     useCallback(() => {
       if (isFocused) {
+        positionX.value = 0;
+        positionY.value = 0;
         // setStatus(LOADING);
         setPlan([]);
         const socket = io(`${API_URL}`, {
@@ -50,7 +74,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
         });
         handleSocket(socket);
 
-        // get place
+        getInformation();
         return () => {
           socket.disconnect();
           console.log("didnt focus");
@@ -102,6 +126,61 @@ const PlanSelect = ({ route, navigation }: Props) => {
     } catch (err) {}
   };
 
+  const getInformation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return;
+      }
+      let location = await Location.getCurrentPositionAsync({});
+
+      const response: AxiosResponse<{ places: Place[]; plan: Plan[] }> =
+        await axios.get(`${API_URL}/trip/information`, {
+          params: {
+            tripId: tripId,
+            type: "allPlaceForEachDate",
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          },
+          headers: {
+            authorization: token,
+          },
+        });
+      setPlan(response.data.plan);
+      setPlaces(response.data.places);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const positionX = useSharedValue(0);
+  const positionY = useSharedValue(0);
+
+  const pan = Gesture.Pan()
+    .onStart((e) => {})
+    .onUpdate((e) => {
+      positionX.value = e.translationX;
+      positionY.value = e.translationY;
+    })
+    .onEnd((e) => {
+      const positionYAtEnd =
+        height - 80 - insets.top - 233 + e.translationY + scrollPosition;
+      console.log(positionYAtEnd);
+      if (positionYAtEnd > 0 && positionYAtEnd < 200) {
+        console.log("in");
+      }
+      positionX.value = 0;
+      positionY.value = 0;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: positionY.value },
+      { translateX: positionX.value },
+    ],
+  }));
+
   return (
     <>
       <View
@@ -111,6 +190,10 @@ const PlanSelect = ({ route, navigation }: Props) => {
           paddingRight: insets.right,
         }}
         className="bg-[#FFF] h-[100%]"
+        onLayout={(event) => {
+          console.log(event.nativeEvent.layout.height);
+          setHeight(event.nativeEvent.layout.height);
+        }}
       >
         {/* header */}
         <View className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end ">
@@ -129,20 +212,68 @@ const PlanSelect = ({ route, navigation }: Props) => {
             <Loading />
           </View>
         ) : (
-          <ScrollView className=" bg-[#EEEEEE]  ">
-            {/* add button */}
+          <ScrollView
+            className=" bg-[#EEEEEE]"
+            onScrollEndDrag={(event) => {
+              setScrollPosition(Math.max(event.nativeEvent.contentOffset.y, 0));
+            }}
+          >
+            <View className="flex-col  items-center">
+              {plan.map((item) => (
+                <PlanCard plan={item} />
+              ))}
+            </View>
           </ScrollView>
         )}
+
+        <View className="flex-col items-center h-[149px] bg-white pt-[16px]">
+          <Animated.View style={animatedStyle} className=" w-[358px] ">
+            <GestureDetector gesture={pan}>
+              <FlatList
+                data={places}
+                renderItem={({ item }) => (
+                  <PlaceCard
+                    coverImg={item.coverImg}
+                    forecast={item.forecasts}
+                    location={item.location}
+                    name={item.placeName}
+                    tripId={tripId}
+                  />
+                )}
+                horizontal
+                pagingEnabled
+                snapToAlignment="center"
+                showsHorizontalScrollIndicator={false}
+                onScroll={(e) => {
+                  const offsetX = e.nativeEvent.contentOffset.x;
+                  const page = Math.floor(offsetX / 358);
+                  setCurrentPage(page < 0 ? 0 : page);
+                }}
+              />
+            </GestureDetector>
+          </Animated.View>
+          {places.length > 1 && (
+            <View className="flex-row mt-[8px] ">
+              {places.map((item, index) => {
+                return (
+                  <View
+                    key={index}
+                    style={{
+                      width: currentPage === index ? 15 : 5,
+                      height: 5,
+                      borderRadius: 3,
+                      backgroundColor:
+                        currentPage === index ? "#FFC502" : "gray",
+                      marginLeft: 4,
+                    }}
+                  ></View>
+                );
+              })}
+            </View>
+          )}
+        </View>
         {/* footer */}
-        <View
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-          }}
-        >
-          <View></View>
+        <View className="flex-col items-center">
           {/* button go to next stage */}
 
           <View className="h-[100px] bg-[#FFF] p-[16px] flex-row justify-center">
@@ -155,6 +286,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           </View>
         </View>
       </View>
+
       {confirmModal.display && (
         <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center "></View>
       )}

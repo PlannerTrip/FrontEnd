@@ -1,31 +1,32 @@
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import axios from "axios";
+import { Image } from "react-native";
+import { Socket, io } from "socket.io-client";
+import { AuthData } from "../../contexts/authContext";
+import { StackParamList } from "../../interface/navigate";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StackParamList } from "../../interface/navigate";
-import { AuthData } from "../../contexts/authContext";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 // ====================== svg ======================
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 
-import axios from "axios";
-import { API_URL } from "@env";
-import { Socket, io } from "socket.io-client";
-import { useFocusEffect, useIsFocused } from "@react-navigation/native";
-import { Image } from "react-native";
 import { Place } from "../../interface/placeDiscovery";
-import PlaceCard from "../../components/placeSelect/placeCard";
 
-import { LOADING, SUCCESS } from "../../utils/const";
+import PlaceCard from "../../components/placeSelect/placeCard";
 import Loading from "../Loading";
+
+import { API_URL } from "@env";
+import { LOADING, SUCCESS } from "../../utils/const";
 
 type Props = NativeStackScreenProps<StackParamList, "placeDiscovery">;
 
 const PlaceDiscovery = ({ route, navigation }: Props) => {
   const insets = useSafeAreaInsets();
 
-  const { userId, token } = useContext(AuthData);
+  const { token } = useContext(AuthData);
 
   const isFocused = useIsFocused();
 
@@ -33,6 +34,8 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
 
   const suggest = "suggest";
   const bookmark = "bookmark";
+
+  // ====================== useState ======================
 
   const [currentTab, setCurrentTab] = useState(suggest);
   const [places, setPlaces] = useState<Place[]>([]);

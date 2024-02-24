@@ -2,26 +2,31 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useContext, useState } from "react";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import axios, { AxiosResponse } from "axios";
+import { Socket, io } from "socket.io-client";
 
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { StackParamList } from "../../interface/navigate";
+
 import { AuthData } from "../../contexts/authContext";
 
-import * as SecureStore from "expo-secure-store";
 
 // ====================== svg ======================
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 import Plus from "../../assets/placeSelect/plus.svg";
 
-import ButtonCustom from "../../components/button";
-import axios, { AxiosResponse } from "axios";
-import { API_URL } from "@env";
-import { Socket, io } from "socket.io-client";
+
 import { Place } from "../../interface/placeSelect";
+
+
+
+import ButtonCustom from "../../components/button";
 import PlaceCard from "../../components/placeSelect/placeCard";
 import ConfirmModal from "../../components/confirmModal";
 import Loading from "../Loading";
+
+import { API_URL } from "@env";
 import { LOADING, SUCCESS } from "../../utils/const";
 
 type Props = NativeStackScreenProps<StackParamList, "placeSelect">;
@@ -32,6 +37,10 @@ const PlaceSelect = ({ route, navigation }: Props) => {
   const { userId, token } = useContext(AuthData);
 
   const { tripId } = route.params;
+  
+  const isFocused = useIsFocused();
+
+  // ====================== useState======================
 
   const [owner, setOwner] = useState(false);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -42,7 +51,6 @@ const PlaceSelect = ({ route, navigation }: Props) => {
   });
   const [status, setStatus] = useState(LOADING);
 
-  const isFocused = useIsFocused();
 
   // ====================== useFocusEffect ======================
 
