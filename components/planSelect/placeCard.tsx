@@ -9,6 +9,7 @@ function PlaceCard({
   location,
   tripId,
   coverImg,
+  selectBy,
 }: PlaceCardInput) {
   return (
     <View className="w-[358px] h-[120px] rounded-[5px] border-[2px] p-[6px] flex-row bg-white">
@@ -35,7 +36,7 @@ function PlaceCard({
         )}
         {/* location */}
         <View className="flex-row mt-[4px] items-center ">
-          <Text className="text-[#FFC502] text-[12px]">
+          <Text className="text-[#FFC502] text-[12px] font-bold">
             {location.district},{location.province}
           </Text>
         </View>

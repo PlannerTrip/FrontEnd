@@ -10,16 +10,12 @@ import { StackParamList } from "../../interface/navigate";
 
 import { AuthData } from "../../contexts/authContext";
 
-
 // ====================== svg ======================
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 import Plus from "../../assets/placeSelect/plus.svg";
 
-
 import { Place } from "../../interface/placeSelect";
-
-
 
 import ButtonCustom from "../../components/button";
 import PlaceCard from "../../components/placeSelect/placeCard";
@@ -37,7 +33,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
   const { userId, token } = useContext(AuthData);
 
   const { tripId } = route.params;
-  
+
   const isFocused = useIsFocused();
 
   // ====================== useState======================
@@ -50,7 +46,6 @@ const PlaceSelect = ({ route, navigation }: Props) => {
     placeName: "",
   });
   const [status, setStatus] = useState(LOADING);
-
 
   // ====================== useFocusEffect ======================
 
@@ -289,25 +284,27 @@ const PlaceSelect = ({ route, navigation }: Props) => {
           </ScrollView>
         )}
         {/* footer */}
-        <View
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-          }}
-        >
-          {/* button go to next stage */}
+        {owner && (
+          <View
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+            }}
+          >
+            {/* button go to next stage */}
 
-          <View className="h-[100px] bg-[#FFF] p-[16px] flex-row justify-center">
-            <ButtonCustom
-              width="w-[351px]"
-              title="ต่อไป"
-              disable={places.length === 0}
-              onPress={onPressNextButton}
-            />
+            <View className="h-[100px] bg-[#FFF] p-[16px] flex-row justify-center">
+              <ButtonCustom
+                width="w-[351px]"
+                title="ต่อไป"
+                disable={places.length === 0}
+                onPress={onPressNextButton}
+              />
+            </View>
           </View>
-        </View>
+        )}
       </View>
       {confirmModal.display && (
         <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">

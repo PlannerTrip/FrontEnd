@@ -10,32 +10,33 @@ export interface Place {
   placeName: string;
   coverImg: string[];
   forecasts: Forecast[];
+  selectBy: string[];
 }
 
 export interface Plan {
-  place: {
-    type: String;
-    location: {
-      address: string;
-      district: string;
-      province: string;
-    };
-    id: string;
-    placeName: string;
-    coverImg: string[];
-    distant: number;
-    selectBy: { username: string; userprofile: string }[];
-  }[];
+  place: PlanPlace[];
 
   date: string;
   day: Number;
-  activity: [
-    {
-      selectBy: String[];
-      name: string;
-      activityId: string;
-    }
-  ];
+  activity: {
+    selectBy: { username: string; userprofile: string; userId: string }[];
+    name: string;
+    activityId: string;
+  }[];
+}
+
+export interface PlanPlace {
+  type: String;
+  location: {
+    address: string;
+    district: string;
+    province: string;
+  };
+  placePlanId: string;
+  placeName: string;
+  coverImg: string[];
+  distant: number;
+  selectBy: { username: string; userprofile: string; userId: string }[];
 }
 
 export interface PlaceCardInput {
@@ -44,4 +45,14 @@ export interface PlaceCardInput {
   location: { district: string; province: string };
   tripId: string;
   coverImg: string[];
+  selectBy: string[];
+}
+
+export interface PlanPlaceCardInput {
+  name: string;
+  location: { district: string; province: string };
+  coverImg: string[];
+  distant: number;
+  selectBy: { username: string; userprofile: string; userId: string }[];
+  onPressRemove: () => void;
 }

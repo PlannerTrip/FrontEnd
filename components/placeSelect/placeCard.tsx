@@ -83,7 +83,7 @@ const PlaceCard = ({
           </View>
           {/* location */}
           <View className="flex-row mt-[3px] items-center ">
-            <Text className="text-[#FFC502] text-[12px]">
+            <Text className="text-[#FFC502] text-[12px] font-bold">
               {location.district},{location.province}
             </Text>
           </View>
@@ -102,7 +102,7 @@ const PlaceCard = ({
       {/* selectBy */}
       {showSelectBy && (
         <View className="flex-row mt-[8px] items-center">
-          <Text className="text-[#FFC502] text-[12px]">เลือกโดย</Text>
+          <Text className="text-[#FFC502] text-[12px] font-bold">เลือกโดย</Text>
           {selectBy.map((item) => (
             <MiniProfileCustom
               profileUrl={item.userprofile}
