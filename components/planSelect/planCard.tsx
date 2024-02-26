@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Plan } from "../../interface/planSelect";
 import { changeDateFormat } from "../../utils/function";
 
@@ -12,7 +12,15 @@ import axios from "axios";
 import { API_URL } from "@env";
 import { AuthData } from "../../contexts/authContext";
 
-const PlanCard = ({ plan, tripId }: { plan: Plan; tripId: string }) => {
+const PlanCard = ({
+  plan,
+  tripId,
+  onPressAddActivity,
+}: {
+  plan: Plan;
+  tripId: string;
+  onPressAddActivity: () => void;
+}) => {
   const { userId, token } = useContext(AuthData);
 
   const onPressRemove = async (id: string) => {
@@ -42,10 +50,12 @@ const PlanCard = ({ plan, tripId }: { plan: Plan; tripId: string }) => {
             {changeDateFormat(plan.date)}
           </Text>
         </View>
-        <View className="h-[24px] w-[106px] rounded-full border-2 border-[#FFC502] flex-row px-[12px] justify-between items-center">
-          <Plus />
-          <Text className="text-[12px] text-[#FFC502]">เพิ่มกิจกรรม</Text>
-        </View>
+        <Pressable onPress={onPressAddActivity}>
+          <View className="h-[24px] w-[106px] rounded-full border-2 border-[#FFC502] flex-row px-[12px] justify-between items-center">
+            <Plus />
+            <Text className="text-[12px] text-[#FFC502]">เพิ่มกิจกรรม</Text>
+          </View>
+        </Pressable>
       </View>
       {/* content */}
       {plan.place.length === 0 && plan.activity.length === 0 ? (
@@ -74,6 +84,9 @@ const PlanCard = ({ plan, tripId }: { plan: Plan; tripId: string }) => {
               name={activity.name}
               key={activity.activityId}
               selectBy={activity.selectBy}
+              onPressRemove={() => {
+                onPressRemove(activity.activityId);
+              }}
             />
           ))}
         </View>

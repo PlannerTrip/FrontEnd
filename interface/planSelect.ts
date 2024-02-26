@@ -17,14 +17,15 @@ export interface Plan {
   place: PlanPlace[];
 
   date: string;
-  day: Number;
-  activity: {
-    selectBy: { username: string; userprofile: string; userId: string }[];
-    name: string;
-    activityId: string;
-  }[];
+  day: number;
+  activity: Activity[];
 }
 
+export interface Activity {
+  selectBy: { username: string; userprofile: string; userId: string }[];
+  name: string;
+  activityId: string;
+}
 export interface PlanPlace {
   type: String;
   location: {

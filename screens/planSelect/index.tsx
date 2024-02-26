@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useRef, useState } from "react";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput } from "react-native";
 import { StackParamList } from "../../interface/navigate";
 import { AuthData } from "../../contexts/authContext";
 import * as Location from "expo-location";
@@ -31,10 +31,10 @@ import Animated, {
   useAnimatedStyle,
   runOnJS,
 } from "react-native-reanimated";
-import { Place, Plan, PlanPlace } from "../../interface/planSelect";
+import { Activity, Place, Plan, PlanPlace } from "../../interface/planSelect";
 import PlaceCard from "../../components/planSelect/placeCard";
 import PlanCard from "../../components/planSelect/planCard";
-import { distanceTwoPoint } from "../../utils/function";
+import { changeDateFormat, distanceTwoPoint } from "../../utils/function";
 
 type Props = NativeStackScreenProps<StackParamList, "planSelect">;
 
@@ -45,12 +45,16 @@ const PlanSelect = ({ route, navigation }: Props) => {
 
   const { tripId } = route.params;
 
-  const [owner, setOwner] = useState(true);
+  const scrollRef = useRef<ScrollView>(null);
+
+  // ====================== useState ======================
+
+  const [owner, setOwner] = useState(false);
   const [plan, setPlan] = useState<Plan[]>([]);
   const [confirmModal, setConfirmModal] = useState({
     display: false,
-    id: "",
-    name: "",
+    day: 0,
+    date: "",
   });
   const [status, setStatus] = useState(LOADING);
 
@@ -63,10 +67,11 @@ const PlanSelect = ({ route, navigation }: Props) => {
 
   const [errorMsg, setErrorMsg] = useState("");
 
-  const isFocused = useIsFocused();
-
   const [scrollHeight, setScrollHeight] = useState(0);
 
+  const [activityInput, setActivityInput] = useState("");
+
+  const isFocused = useIsFocused();
   // ====================== useFocusEffect ======================
 
   useFocusEffect(
@@ -74,12 +79,9 @@ const PlanSelect = ({ route, navigation }: Props) => {
       if (isFocused) {
         positionX.value = 0;
         positionY.value = 0;
-        // setStatus(LOADING);
-        setPlan([]);
-        setOwner(false);
-        setPlaces([]);
-        setStatus(LOADING);
-        setScrollPosition(0);
+
+        init();
+
         const socket = io(`${API_URL}`, {
           transports: ["websocket"],
         });
@@ -95,6 +97,23 @@ const PlanSelect = ({ route, navigation }: Props) => {
   );
 
   // ====================== function ======================
+
+  const init = () => {
+    setPlan([]);
+    setOwner(false);
+    setPlaces([]);
+    setStatus(LOADING);
+    setCurrentPage(0);
+    setScrollPosition(0);
+    setHeight(0);
+    setScrollHeight(0);
+    setActivityInput("");
+    setConfirmModal({
+      display: false,
+      day: 0,
+      date: "",
+    });
+  };
 
   const handleSocket = (socket: Socket) => {
     socket.on("connect", () => {
@@ -113,6 +132,16 @@ const PlanSelect = ({ route, navigation }: Props) => {
           tripId: tripId,
         });
       }
+    });
+
+    socket.on("addActivity", (data: { day: number; activity: Activity }) => {
+      setPlan((plan) =>
+        plan.map((item) =>
+          item.day === data.day
+            ? { ...item, activity: [...item.activity, data.activity] }
+            : item
+        )
+      );
     });
 
     socket.on("removeItemPlan", (data: { day: number; id: string }) => {
@@ -212,7 +241,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
       });
       setPlan(response.data.plan);
       setPlaces(response.data.places);
-      setOwner(owner);
+      setOwner(response.data.owner);
       setStatus(SUCCESS);
     } catch (err) {
       console.log(err);
@@ -225,7 +254,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
     try {
       // cal position when end
       const header = 80;
-      const footer = owner ? 233 : 169;
+      const footer = owner ? 233 : 185;
       const positionYAtEnd =
         height - header - insets.top - footer + e.translationY + scrollPosition;
 
@@ -285,6 +314,28 @@ const PlanSelect = ({ route, navigation }: Props) => {
     }
   };
 
+  const onPressAddActivity = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/planActivity`,
+        {
+          tripId,
+          name: activityInput,
+          day: confirmModal.day,
+        },
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+      setConfirmModal({ date: "", day: 0, display: false });
+      setActivityInput("");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   // ====================== animate ======================
 
   const positionX = useSharedValue(0);
@@ -306,8 +357,6 @@ const PlanSelect = ({ route, navigation }: Props) => {
       { translateX: positionX.value },
     ],
   }));
-
-  const scrollRef = useRef<ScrollView>(null);
 
   return (
     <>
@@ -345,7 +394,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
               className=" bg-[#EEEEEE]"
               onContentSizeChange={(w, h) => {
                 setScrollHeight(h);
-                if (scrollRef) {
+                if (scrollRef.current) {
                   scrollRef.current.scrollTo({
                     y: Math.max(scrollPosition - (scrollHeight - h), 0),
                   });
@@ -364,7 +413,18 @@ const PlanSelect = ({ route, navigation }: Props) => {
             >
               <View className="flex-col pb-[16px]  items-center">
                 {plan.map((item) => (
-                  <PlanCard plan={item} key={item.date} tripId={tripId} />
+                  <PlanCard
+                    plan={item}
+                    key={item.date}
+                    tripId={tripId}
+                    onPressAddActivity={() => {
+                      setConfirmModal({
+                        date: item.date,
+                        day: item.day,
+                        display: true,
+                      });
+                    }}
+                  />
                 ))}
               </View>
             </ScrollView>
@@ -427,7 +487,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
               )}
             </View>
             {/* footer */}
-            {owner && (
+            {owner ? (
               <View className="flex-col items-center">
                 {/* button go to next stage */}
 
@@ -440,13 +500,50 @@ const PlanSelect = ({ route, navigation }: Props) => {
                   />
                 </View>
               </View>
+            ) : (
+              <View className="h-[16px] bg-white"></View>
             )}
           </>
         )}
       </View>
-
+      {/* modal */}
       {confirmModal.display && (
-        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center "></View>
+        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+          <View className="w-[279px] h-[160px] p-[16px] rounded-lg bg-white flex-col items-center">
+            <Text className="text-[16px] leading-6 font-bold">
+              วันที่ {confirmModal.day}
+            </Text>
+            <Text className="text-[16px] leading-6 font-normal">
+              {changeDateFormat(confirmModal.date)}
+            </Text>
+            <TextInput
+              onChangeText={setActivityInput}
+              value={activityInput}
+              className="h-[32px] border pl-[16px] w-[247px] rounded-md border-[#D9D9D9] mt-[8px]"
+              placeholder="โปรดระบุกิจกรรม"
+            />
+            <View className="mt-[8px] flex-row">
+              <Pressable
+                onPress={() => {
+                  setConfirmModal({ date: "", day: 0, display: false });
+                }}
+              >
+                <View className="w-[115.5px] h-[32px] border flex justify-center items-center border-[#FFC502] rounded-sm mr-[16px]">
+                  <Text className="text-[#FFC502] text-[16px] leading-6 ">
+                    ยกเลิก
+                  </Text>
+                </View>
+              </Pressable>
+              <Pressable onPress={onPressAddActivity}>
+                <View className="w-[115.5px] h-[32px]  flex justify-center items-center bg-[#FFC502] rounded-sm">
+                  <Text className="text-white text-[16px] leading-6 ">
+                    เพิ่ม
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       )}
     </>
   );

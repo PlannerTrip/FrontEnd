@@ -212,7 +212,7 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
           <ScrollView className={`bg-[#F5F5F5] `}>
             <View className="mt-[16px] flex-col items-center">
               {places.map((place) => (
-                <View className="mb-[16px]">
+                <View className="mb-[16px]" key={place.placeId}>
                   <PlaceCard
                     coverImg={place.coverImg}
                     forecast={place.forecasts}
