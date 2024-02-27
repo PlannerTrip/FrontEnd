@@ -56,6 +56,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
   );
 
   useEffect(() => {
+    console.log("authStatus", authStatus, "tripId", tripId);
     if (authStatus === SUCCESS && tripId !== "") {
       if (currentStage === "invitation") {
         navigation.navigate("invitation", {
@@ -65,9 +66,14 @@ const InviteVerify = ({ route, navigation }: Props) => {
         navigation.navigate("placeSelect", {
           tripId: tripId,
         });
+      } else if (currentStage === "planSelect") {
+        navigation.navigate("planSelect", {
+          tripId: tripId,
+        });
       }
     }
-    if (authStatus === FAIL && tripId !== "") {
+    if (authStatus === FAIL) {
+      console.log("navigate signIn");
       navigation.navigate("signIn");
     }
   }, [authStatus, currentStage, tripId]);

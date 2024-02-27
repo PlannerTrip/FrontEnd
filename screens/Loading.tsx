@@ -16,7 +16,7 @@ const Loading = () => {
         paddingLeft: insets.left,
         paddingRight: insets.right,
       }}
-      className="bg-[#0000008C] h-[100%] flex-1 justify-center items-center"
+      className=" h-[100%] flex-1 justify-center items-center"
     >
       <LoadingCustom />
     </View>

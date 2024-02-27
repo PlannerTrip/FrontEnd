@@ -23,7 +23,7 @@ const LocationCard = ({ place }: { place: any }) => {
     })
 
     const { width, height } = Dimensions.get("screen")
-    const widthTruncate = `w-[${width - 2 * 16 - 2 * 8 - 16 - 128}px]`
+    const widthTruncate = width - 2 * 16 - 2 * 8 - 16 - 128
 
     // =============== axios ===============
     const getPlaceInformation = async () => {
@@ -57,7 +57,7 @@ const LocationCard = ({ place }: { place: any }) => {
     )
 
     return (
-        <View className="h-[144px] w-[100%] p-[8px] bg-[#FFFFFF] flex flex-row ">
+        <View className={`h-[144px] p-[8px]  flex flex-row ${widthTruncate} `}>
             <View
                 className={`w-[128px] h-[128px] rounded-[5px] overflow-hidden border-[1px] border-[#54400E]`}
             >
@@ -71,14 +71,16 @@ const LocationCard = ({ place }: { place: any }) => {
 
             <View className="ml-[16px] ">
                 <Text
-                    className={`text-[16px]  leading-[24px] truncate  font-bold ${widthTruncate} `}
+                    style={{ width: widthTruncate }}
+                    className={`text-[16px]  leading-[24px] truncate  font-bold  `}
                     numberOfLines={1}
                 >
                     {data.placeName}
                 </Text>
 
                 <Text
-                    className={`text-[16px] leading-[24px] truncate  mt-[8px] ${widthTruncate}`}
+                    style={{ width: widthTruncate }}
+                    className={`text-[16px] leading-[24px] truncate  mt-[8px] ${widthTruncate} w-[230px] `}
                     numberOfLines={2}
                 >
                     {data.introduction}

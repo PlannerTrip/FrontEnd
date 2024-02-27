@@ -19,7 +19,7 @@ export interface Place {
   weekDay: null;
   __v: 0;
   forecasts: Forecast[];
-  selectBy: string[];
+  selectBy: { username: string; userprofile: string; userId: string }[];
 }
 export interface PlaceCardInput {
   name: string;
@@ -27,8 +27,13 @@ export interface PlaceCardInput {
   tag: string[];
   forecast: Forecast[];
   location: { district: string; province: string };
-  selectBy: string[];
+  selectBy?: { username: string; userprofile: string }[];
   tripId: string;
+  coverImg: string[];
+  onPressIcon: () => void;
+  showIcon?: boolean;
+  showSelectBy?: boolean;
+  iconType?: string;
 }
 
 export interface Forecast {

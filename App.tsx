@@ -30,6 +30,8 @@ import * as eva from "@eva-design/eva";
 import { ApplicationProvider, Layout } from "@ui-kitten/components";
 import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
+import PlanSelect from "./screens/planSelect";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const prefix = Linking.createURL("/");
 
@@ -71,7 +73,6 @@ export default function App() {
     try {
       const localToken = await SecureStore.getItemAsync("key");
       if (!localToken) throw new Error("can't get token");
-      console.log(API_URL);
       const response = await axios.get(`${API_URL}/authCheck`, {
         headers: {
           authorization: localToken,
@@ -88,56 +89,65 @@ export default function App() {
     } catch (error) {
       setIsLoading(false);
       console.log(error);
-      if (axios.isAxiosError(error) && error.response) {
-        setAuthInformation({
-          authStatus: FAIL,
-          token: "",
-          userId: "",
-        });
-        console.log(error.response.data);
-      }
+      setAuthInformation({
+        authStatus: FAIL,
+        token: "",
+        userId: "",
+      });
+      // if (axios.isAxiosError(error) && error.response) {
+      //   setAuthInformation({
+      //     authStatus: FAIL,
+      //     token: "",
+      //     userId: "",
+      //   });
+      //   console.log(error.response.data);
+      // }
     }
   };
 
   return (
-    <ApplicationProvider {...eva} theme={eva.light}>
-      <AuthData.Provider
-        value={{
-          ...authInformation,
-          setIsSignedIn: setIsSignedIn,
-        }}
-      >
-        <NavigationContainer linking={linking}>
-          <Stack.Navigator
-            screenOptions={{ headerShown: false, animation: "none" }}
-          >
-            {isLoading ? (
-              <Stack.Screen name="loading" component={Loading} />
-            ) : isSignedIn ? (
-              <>
-                <Stack.Screen name="tab" component={Tab} />
-                <Stack.Screen name="invitation" component={Invitation} />
-                <Stack.Screen name="placeSelect" component={PlaceSelect} />
-                <Stack.Screen
-                  name="placeInformation"
-                  component={PlaceInformation}
-                />
-                <Stack.Screen
-                  name="placeDiscovery"
-                  component={PlaceDiscovery}
-                />
-              </>
-            ) : (
-              <>
-                <Stack.Screen name="signIn" component={SignIn} />
-                <Stack.Screen name="signUp" component={SignUp} />
-              </>
-            )}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ApplicationProvider {...eva} theme={eva.light}>
+        <AuthData.Provider
+          value={{
+            ...authInformation,
+            setIsSignedIn: setIsSignedIn,
+            setAuthInformation: setAuthInformation,
+          }}
+        >
+          <NavigationContainer linking={linking}>
+            <Stack.Navigator
+              screenOptions={{ headerShown: false, animation: "none" }}
+            >
+              {isLoading ? (
+                <Stack.Screen name="loading" component={Loading} />
+              ) : isSignedIn ? (
+                <>
+                  <Stack.Screen name="tab" component={Tab} />
+                  <Stack.Screen name="invitation" component={Invitation} />
+                  <Stack.Screen name="placeSelect" component={PlaceSelect} />
+                  <Stack.Screen
+                    name="placeInformation"
+                    component={PlaceInformation}
+                  />
+                  <Stack.Screen
+                    name="placeDiscovery"
+                    component={PlaceDiscovery}
+                  />
+                  <Stack.Screen name="planSelect" component={PlanSelect} />
+                </>
+              ) : (
+                <>
+                  <Stack.Screen name="signIn" component={SignIn} />
+                  <Stack.Screen name="signUp" component={SignUp} />
+                </>
+              )}
 
-            <Stack.Screen name="inviteVerify" component={InviteVerify} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </AuthData.Provider>
-    </ApplicationProvider>
+              <Stack.Screen name="inviteVerify" component={InviteVerify} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </AuthData.Provider>
+      </ApplicationProvider>
+    </GestureHandlerRootView>
   );
 }
