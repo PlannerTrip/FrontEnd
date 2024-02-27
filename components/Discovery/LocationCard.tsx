@@ -78,27 +78,36 @@ const LocationCard = ({ place }: { place: any }) => {
                     {data.placeName}
                 </Text>
 
-                <Text
-                    style={{ width: widthTruncate }}
-                    className={`text-[16px] leading-[24px] truncate  mt-[8px] ${widthTruncate} w-[230px] `}
-                    numberOfLines={2}
-                >
-                    {data.introduction}
-                </Text>
+                {data.introduction && (
+                    <Text
+                        style={{ width: widthTruncate }}
+                        className={`text-[12px] leading-[18px] mb-[3px] truncate mt-[3px] ${widthTruncate} w-[230px] `}
+                        numberOfLines={3}
+                    >
+                        {data.introduction}
+                    </Text>
+                )}
 
-                <View className="mt-[4px] ">
-                    {data.tag.map((tag, index) => {
-                        return (
-                            <View className="self-start px-[4px]  py-[2px]  border border-[#54400E] rounded-[2px] justify-center">
-                                <Text className="text-[12px] leading-[16px] text-[#54400E]">
-                                    {tag}
-                                </Text>
-                            </View>
-                        )
-                    })}
+                <View
+                    className="mt-[4px] flex flex-row flex-wrap"
+                    style={{
+                        width: widthTruncate,
+                        height: data.introduction ? 26 : 26 + 18 * 3 + 6,
+                    }}
+                >
+                    {data.tag.map((tag, index) => (
+                        <View
+                            key={index}
+                            className="self-start px-[4px] mr-[4px] mb-[4px] border border-[#54400E] rounded-[2px] justify-center"
+                        >
+                            <Text className="text-[12px] leading-[16px] text-[#54400E]">
+                                {tag}
+                            </Text>
+                        </View>
+                    ))}
                 </View>
 
-                <View className="mt-[4px] flex flex-row justify-between">
+                <View className=" flex flex-row justify-between">
                     <Text className="text-[12px] font-bold text-[#FFC502]">
                         {data.location.district}, {data.location.province}
                     </Text>

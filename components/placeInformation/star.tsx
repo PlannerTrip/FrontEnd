@@ -1,7 +1,15 @@
 import React from "react"
 import { View, Image } from "react-native"
 
-const Star = ({ score, size = "middle" }: { score: number; size?: string }) => {
+const Star = ({
+    rating,
+    size = "middle",
+    width = "",
+}: {
+    rating: number
+    size?: string
+    width?: string
+}) => {
     const renderStar = () => {
         const starSizeStyleLarge = { width: 40, height: 40 }
         const starSizeStyleMiddle = { width: 22, height: 22 }
@@ -22,16 +30,16 @@ const Star = ({ score, size = "middle" }: { score: number; size?: string }) => {
         }
 
         const handleStar = (n: number) => {
-            if (score < n - 0.5) {
+            if (rating < n - 0.5) {
                 return starNone
-            } else if (score < n) {
+            } else if (rating < n) {
                 return starHalf
             }
             return starFull
         }
 
         return (
-            <View className="flex flex-row justify-between">
+            <View className={`flex flex-row justify-between ${width}`}>
                 <Image source={handleStar(1)} style={handleSize()} />
                 <Image source={handleStar(2)} style={handleSize()} />
                 <Image source={handleStar(3)} style={handleSize()} />
