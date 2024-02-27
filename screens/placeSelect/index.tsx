@@ -45,7 +45,11 @@ const PlaceSelect = ({ route, navigation }: Props) => {
     placeId: "",
     placeName: "",
   });
+
   const [status, setStatus] = useState(LOADING);
+
+  const [displayConfirmLeaveModal, setDisplayConfirmLeaveModal] =
+    useState(false);
 
   // ====================== useFocusEffect ======================
 
@@ -80,6 +84,26 @@ const PlaceSelect = ({ route, navigation }: Props) => {
 
     socket.on("connect_error", (error) => {
       console.log("Socket Error", error.message);
+    });
+
+    socket.on("removeMember", (data: { userId: string }) => {
+      if (userId === data.userId) {
+        navigation.navigate("tab");
+      } else {
+        setPlaces((places) =>
+          places.reduce((result: Place[], current) => {
+            current.selectBy = current.selectBy.filter(
+              (id) => id.userId !== data.userId
+            );
+
+            if (current.selectBy.length !== 0) {
+              result.push(current);
+            }
+
+            return result;
+          }, [])
+        );
+      }
     });
 
     socket.on("addPlace", (data: Place) => {
@@ -156,7 +180,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
           }
         );
       } else {
-        // user click show modal confirm leave trip
+        setDisplayConfirmLeaveModal(true);
       }
     } catch (err) {}
   };
@@ -183,7 +207,6 @@ const PlaceSelect = ({ route, navigation }: Props) => {
 
   const onPressRemove = async (placeId: string, placeName: string) => {
     try {
-      // SecureStore.deleteItemAsync("key");
       if (owner) {
         setConfirmModal({ display: true, placeId: placeId, placeName });
       } else {
@@ -211,6 +234,20 @@ const PlaceSelect = ({ route, navigation }: Props) => {
         },
       });
       setConfirmModal({ display: false, placeId: "", placeName: "" });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressConfirmLeave = async () => {
+    try {
+      await axios.delete(`${API_URL}/trip/member`, {
+        data: { friendId: userId, tripId },
+        headers: {
+          authorization: token,
+        },
+      });
+      setDisplayConfirmLeaveModal(false);
     } catch (err) {
       console.log(err);
     }
@@ -308,6 +345,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
       </View>
       {confirmModal.display && (
         <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+          {/* delete trip */}
           <ConfirmModal
             title={
               <Text className="font-bold">
@@ -319,6 +357,19 @@ const PlaceSelect = ({ route, navigation }: Props) => {
               setConfirmModal({ display: false, placeId: "", placeName: "" });
             }}
             onPressConfirm={onPressConfirmRemove}
+          />
+        </View>
+      )}
+      {displayConfirmLeaveModal && (
+        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+          {/* delete trip */}
+          <ConfirmModal
+            title={<Text className="font-bold">คุณกำลังจะออกจากกลุ่ม</Text>}
+            confirmTitle="ออก"
+            onPressCancel={() => {
+              setDisplayConfirmLeaveModal(false);
+            }}
+            onPressConfirm={onPressConfirmLeave}
           />
         </View>
       )}

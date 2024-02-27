@@ -35,6 +35,7 @@ import { Activity, Place, Plan, PlanPlace } from "../../interface/planSelect";
 import PlaceCard from "../../components/planSelect/placeCard";
 import PlanCard from "../../components/planSelect/planCard";
 import { changeDateFormat, distanceTwoPoint } from "../../utils/function";
+import ConfirmModal from "../../components/confirmModal";
 
 type Props = NativeStackScreenProps<StackParamList, "planSelect">;
 
@@ -46,6 +47,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
   const { tripId } = route.params;
 
   const scrollRef = useRef<ScrollView>(null);
+  const flatList = useRef<FlatList>(null);
 
   // ====================== useState ======================
 
@@ -70,6 +72,9 @@ const PlanSelect = ({ route, navigation }: Props) => {
   const [scrollHeight, setScrollHeight] = useState(0);
 
   const [activityInput, setActivityInput] = useState("");
+
+  const [displayConfirmLeaveModal, setDisplayConfirmLeaveModal] =
+    useState(false);
 
   const isFocused = useIsFocused();
   // ====================== useFocusEffect ======================
@@ -124,6 +129,62 @@ const PlanSelect = ({ route, navigation }: Props) => {
 
     socket.on("connect_error", (error) => {
       console.log("Socket Error", error.message);
+    });
+
+    socket.on("removeMember", (data: { userId: string }) => {
+      if (userId === data.userId) {
+        navigation.navigate("tab");
+      } else {
+        // remove place
+        setPlaces((places) =>
+          places.reduce((result: Place[], current) => {
+            current.selectBy = current.selectBy.filter(
+              (id) => id !== data.userId
+            );
+
+            if (current.selectBy.length !== 0) {
+              result.push(current);
+            }
+
+            return result;
+          }, [])
+        );
+        // scroll flatList to index 0
+        if (flatList.current) {
+          flatList.current.scrollToIndex({ index: 0 });
+        }
+        setPlan((plan) =>
+          plan.map((dailyPlan) => {
+            dailyPlan.place = dailyPlan.place.reduce(
+              (resultPLace: PlanPlace[], currentPlace) => {
+                currentPlace.selectBy = currentPlace.selectBy.filter(
+                  (information) => information.userId !== data.userId
+                );
+                if (currentPlace.selectBy.length !== 0) {
+                  resultPLace.push(currentPlace);
+                }
+                return resultPLace;
+              },
+              []
+            );
+
+            dailyPlan.activity = dailyPlan.activity.reduce(
+              (resultActivity: Activity[], currentActivity) => {
+                currentActivity.selectBy = currentActivity.selectBy.filter(
+                  (information) => information.userId !== data.userId
+                );
+                if (currentActivity.selectBy.length !== 0) {
+                  resultActivity.push(currentActivity);
+                }
+                return resultActivity;
+              },
+              []
+            );
+
+            return dailyPlan;
+          })
+        );
+      }
     });
 
     socket.on("updateStage", (data: { stage: string }) => {
@@ -207,7 +268,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           }
         );
       } else {
-        // user click show modal confirm leave trip
+        setDisplayConfirmLeaveModal(true);
       }
     } catch (err) {}
   };
@@ -336,6 +397,20 @@ const PlanSelect = ({ route, navigation }: Props) => {
     }
   };
 
+  const onPressConfirmLeave = async () => {
+    try {
+      await axios.delete(`${API_URL}/trip/member`, {
+        data: { friendId: userId, tripId },
+        headers: {
+          authorization: token,
+        },
+      });
+      setDisplayConfirmLeaveModal(false)
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   // ====================== animate ======================
 
   const positionX = useSharedValue(0);
@@ -394,7 +469,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
               className=" bg-[#EEEEEE]"
               onContentSizeChange={(w, h) => {
                 setScrollHeight(h);
-                if (scrollRef.current) {
+                if (scrollRef.current && scrollHeight !== 0) {
                   scrollRef.current.scrollTo({
                     y: Math.max(scrollPosition - (scrollHeight - h), 0),
                   });
@@ -442,6 +517,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
               <Animated.View style={animatedStyle} className=" w-[358px] ">
                 <GestureDetector gesture={pan}>
                   <FlatList
+                    ref={flatList}
                     data={places}
                     renderItem={({ item }) => (
                       <PlaceCard
@@ -543,6 +619,19 @@ const PlanSelect = ({ route, navigation }: Props) => {
               </Pressable>
             </View>
           </View>
+        </View>
+      )}
+      {displayConfirmLeaveModal && (
+        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+          {/* delete trip */}
+          <ConfirmModal
+            title={<Text className="font-bold">คุณกำลังจะออกจากกลุ่ม</Text>}
+            confirmTitle="ออก"
+            onPressCancel={() => {
+              setDisplayConfirmLeaveModal(false);
+            }}
+            onPressConfirm={onPressConfirmLeave}
+          />
         </View>
       )}
     </>
