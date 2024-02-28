@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from "react"
+import React, { useCallback, useContext, useState } from "react";
 import {
     View,
     Text,
@@ -11,46 +11,47 @@ import {
     Alert,
     Platform,
     TouchableOpacity,
-} from "react-native"
+} from "react-native";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
-} from "react-native-safe-area-context"
+} from "react-native-safe-area-context";
 
 // icon
-import Arrow_left_brown from "../../assets/Arrow_left_brown.svg"
-import AddTrip from "../../assets/placeInformation/AddTrip.svg"
-import Bookmark from "../../assets/placeInformation/Bookmark.svg"
-import Bookmarked from "../../assets/placeInformation/Bookmarked.svg"
-import Map from "../../assets/placeInformation/Map.svg"
-import Pin from "../../assets/placeInformation/Pin.svg"
-import TelephoneActive from "../../assets/placeInformation/TelephoneActive.svg"
-import WebsiteActive from "../../assets/placeInformation/WebsiteActive.svg"
+import Arrow_left_brown from "../../assets/Arrow_left_brown.svg";
+import AddTrip from "../../assets/placeInformation/AddTrip.svg";
+import Bookmark from "../../assets/placeInformation/Bookmark.svg";
+import Bookmarked from "../../assets/placeInformation/Bookmarked.svg";
+import Map from "../../assets/placeInformation/Map.svg";
+import Pin from "../../assets/placeInformation/Pin.svg";
+import TelephoneActive from "../../assets/placeInformation/TelephoneActive.svg";
+import WebsiteActive from "../../assets/placeInformation/WebsiteActive.svg";
 
-import * as SecureStore from "expo-secure-store"
-import { API_URL } from "@env"
-import axios from "axios"
-import { useFocusEffect } from "@react-navigation/native"
+import * as SecureStore from "expo-secure-store";
+import { API_URL } from "@env";
+import axios from "axios";
+import { useFocusEffect } from "@react-navigation/native";
 
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
-import { StackParamList } from "../../interface/navigate"
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { StackParamList } from "../../interface/navigate";
 
-import FlatListImage from "../../components/flatListImage"
-import Star from "../../components/placeInformation/star"
-import PercentageBar from "../../components/placeInformation/percentageBar"
-import ButtonCustom from "../../components/button"
-import Review from "../../components/placeInformation/review"
-import OfficeHours from "../../components/placeInformation/officeHours"
-import { AuthData } from "../../contexts/authContext"
-import { FAIL, LOADING, SUCCESS } from "../../utils/const"
-import ConfirmModal from "../../components/confirmModal"
+import FlatListImage from "../../components/flatListImage";
+import Star from "../../components/placeInformation/star";
+import PercentageBar from "../../components/placeInformation/percentageBar";
+import ButtonCustom from "../../components/button";
+import Review from "../../components/placeInformation/review";
+import OfficeHours from "../../components/placeInformation/officeHours";
+import { AuthData } from "../../contexts/authContext";
+import { FAIL, LOADING, SUCCESS } from "../../utils/const";
+import ConfirmModal from "../../components/confirmModal";
 
-type Props = NativeStackScreenProps<StackParamList, "placeInformation">
+type Props = NativeStackScreenProps<StackParamList, "placeInformation">;
 
 const PlaceInformation = ({ navigation, route }: Props) => {
-    const insets = useSafeAreaInsets()
+    const insets = useSafeAreaInsets();
 
-    const { placeId, type, forecastDate, forecastDuration, from } = route.params
+    const { placeId, type, forecastDate, forecastDuration, from } =
+        route.params;
 
     const [data, setData] = useState({
         placeName: "",
@@ -84,27 +85,27 @@ const PlaceInformation = ({ navigation, route }: Props) => {
         longitude: 100.528338,
 
         placeId: "",
-    })
+    });
 
     // https://www.google.com/maps/place/@13.72042,100.5257631,17z
 
-    const { width, height } = Dimensions.get("screen")
+    const { width, height } = Dimensions.get("screen");
 
-    const { userId, token } = useContext(AuthData)
-    const [numberOfReviews, setNumberOfReviews] = useState(0)
-    const [averageRating, setAverageRating] = useState(0)
+    const { userId, token } = useContext(AuthData);
+    const [numberOfReviews, setNumberOfReviews] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
     const [ratingCounts, setRatingCounts] = useState<{ [key: number]: number }>(
         {}
-    )
+    );
     const [placeInformationStatus, setPlaceInformationStatus] =
-        useState(LOADING)
-    const [modalDisplay, setModalDisplay] = useState(false)
-    const [targetReviewId, setTargetReviewId] = useState("")
+        useState(LOADING);
+    const [modalDisplay, setModalDisplay] = useState(false);
+    const [targetReviewId, setTargetReviewId] = useState("");
 
     // =============== axios ===============
     const getPlaceInformation = async () => {
         try {
-            const result = await SecureStore.getItemAsync("key")
+            const result = await SecureStore.getItemAsync("key");
             const response = await axios.get(`${API_URL}/place/information`, {
                 headers: {
                     authorization: result,
@@ -115,42 +116,42 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                     forecastDate: forecastDate,
                     forecastDuration: forecastDuration,
                 },
-            })
+            });
 
-            setData(response.data)
-            console.log(response.status)
+            setData(response.data);
+            console.log(response.status);
 
-            const reviews = response.data.review
+            const reviews = response.data.review;
 
             // Count the number of reviews
-            const numberOfReviews: number = reviews.length
-            setNumberOfReviews(numberOfReviews)
+            const numberOfReviews: number = reviews.length;
+            setNumberOfReviews(numberOfReviews);
 
             // Calculate the average rating
             const totalRating: number = reviews.reduce(
                 (sum, review) => sum + review.rating,
                 0
-            )
+            );
             const averageRating: number =
-                numberOfReviews > 0 ? totalRating / numberOfReviews : 0
-            setAverageRating(averageRating)
+                numberOfReviews > 0 ? totalRating / numberOfReviews : 0;
+            setAverageRating(averageRating);
 
             // Count the occurrences of each rating
-            const ratingCounts: { [key: number]: number } = {}
+            const ratingCounts: { [key: number]: number } = {};
             reviews.forEach((review) => {
-                const rating = review.rating
-                ratingCounts[rating] = (ratingCounts[rating] || 0) + 1
-            })
-            setRatingCounts(ratingCounts)
+                const rating = review.rating;
+                ratingCounts[rating] = (ratingCounts[rating] || 0) + 1;
+            });
+            setRatingCounts(ratingCounts);
 
-            setPlaceInformationStatus(SUCCESS)
+            setPlaceInformationStatus(SUCCESS);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data)
+                console.log(error.response.data);
             }
-            setPlaceInformationStatus(FAIL)
+            setPlaceInformationStatus(FAIL);
         }
-    }
+    };
     const postLikeReview = async (reviewId: number) => {
         try {
             const response = await axios.post(
@@ -161,13 +162,13 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                         authorization: token,
                     },
                 }
-            )
+            );
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data)
+                console.log(error.response.data);
             }
         }
-    }
+    };
     const deleteReview = async (reviewId: number) => {
         try {
             const response = await axios.delete(`${API_URL}/review/delete`, {
@@ -177,80 +178,80 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                 data: {
                     reviewId: reviewId,
                 },
-            })
-            console.log(response.data)
+            });
+            console.log(response.data);
             if (response.data === "delete review success") {
-                setModalDisplay(false)
+                setModalDisplay(false);
             }
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data)
+                console.log(error.response.data);
             }
         }
-    }
+    };
 
     // =============== useFocusEffect ===============
     useFocusEffect(
         useCallback(() => {
-            getPlaceInformation()
+            getPlaceInformation();
         }, [])
-    )
+    );
 
     // =============== navigate ===============
     const handleGoBack = () => {
-        navigation.goBack()
-    }
+        navigation.goBack();
+    };
 
     const handleReview = () => {
         navigation.navigate("review", {
             placeName: data.placeName,
             placeId: data.placeId,
-        })
-    }
+        });
+    };
 
     // =============== review ===============
     const handleDeleteReview = (reviewId: string) => {
-        setModalDisplay(true)
-        setTargetReviewId(reviewId)
-    }
+        setModalDisplay(true);
+        setTargetReviewId(reviewId);
+    };
 
     const handleDeleteReviewConfirm = async () => {
-        console.log("delete", targetReviewId)
-    }
+        console.log("delete", targetReviewId);
+    };
 
     // =============== function ===============
-    const handleCheckIn = () => {}
+    const handleCheckIn = () => {};
 
     const handlePercentage = (n: number | undefined) => {
         if (n) {
-            return (n / numberOfReviews) * 100
+            return (n / numberOfReviews) * 100;
         }
-        return 0
-    }
+        return 0;
+    };
 
     //
     const handleCall = () => {
-        console.log("call", data.contact.phone, Platform.OS)
-        const phone = "119"
-        let phoneNumber = ""
+        console.log("call", data.contact.phone, Platform.OS);
+        const phone = "119";
+        let phoneNumber = "";
 
         if (Platform.OS === "ios") {
-            phoneNumber = `telprompt:${phone}`
+            phoneNumber = `telprompt:${phone}`;
         } else if (Platform.OS === "android") {
-            phoneNumber = `tel:${phone}`
+            phoneNumber = `tel:${phone}`;
         }
 
         Linking.canOpenURL(phoneNumber)
             .then((supported) => {
-                console.log("supported", supported)
+                console.log("supported", supported);
                 if (!supported) {
-                    Alert.alert("Phone number is not available")
+                    Alert.alert("Phone number is not available");
                 } else {
-                    return Linking.openURL(phoneNumber)
+                    return Linking.openURL(phoneNumber);
                 }
             })
-            .catch((err) => console.log(err))
-    }
+            .catch((err) => console.log(err));
+    };
 
     // const callNumber = phone => {
     //     console.log('callNumber ----> ', phone);
@@ -281,7 +282,7 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                     className="bg-black h-[100px] w-[100px]"
                 ></Pressable>
             </View>
-        )
+        );
     } else if (placeInformationStatus === SUCCESS) {
         return (
             <View
@@ -349,7 +350,7 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                                                 </Text>
                                             </View>
                                         </View>
-                                    )
+                                    );
                                 })}
                             </View>
                         )}
@@ -493,7 +494,7 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                                                 handleDeleteReview
                                             }
                                         />
-                                    )
+                                    );
                                 })}
                         </View>
                     </View>
@@ -505,17 +506,17 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                             title={<Text>ยืนยันที่จะลบ</Text>}
                             confirmTitle={"ลบ"}
                             onPressCancel={() => {
-                                setModalDisplay(false)
+                                setModalDisplay(false);
                             }}
                             onPressConfirm={() => {
-                                handleDeleteReviewConfirm()
+                                handleDeleteReviewConfirm();
                             }}
                         />
                     </View>
                 )}
             </View>
-        )
+        );
     }
-}
+};
 
-export default PlaceInformation
+export default PlaceInformation;

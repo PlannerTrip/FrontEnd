@@ -1,38 +1,38 @@
-import { NavigationContainer } from "@react-navigation/native"
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import * as SecureStore from "expo-secure-store"
+import * as SecureStore from "expo-secure-store";
 
-import { useEffect, useState, createContext } from "react"
+import { useEffect, useState, createContext } from "react";
 
 // =================== screen ===================
-import SignIn from "./screens/SignIn"
-import SignUp from "./screens/SignUp"
-import PlaceInformation from "./screens/placeInformation"
-import Loading from "./screens/Loading"
-import Invitation from "./screens/invitation"
-import Tab from "./screens/tab"
-import InviteVerify from "./screens/InviteVerify"
+import SignIn from "./screens/SignIn";
+import SignUp from "./screens/SignUp";
+import PlaceInformation from "./screens/placeInformation";
+import Loading from "./screens/Loading";
+import Invitation from "./screens/invitation";
+import Tab from "./screens/tab";
+import InviteVerify from "./screens/InviteVerify";
 
 // =================== type ===================
-import { StackParamList } from "./interface/navigate"
+import { StackParamList } from "./interface/navigate";
 
-import { API_URL } from "@env"
-import axios from "axios"
+import { API_URL } from "@env";
+import axios from "axios";
 
-import * as Linking from "expo-linking"
+import * as Linking from "expo-linking";
 
-import { FAIL, LOADING, SUCCESS } from "./utils/const"
+import { FAIL, LOADING, SUCCESS } from "./utils/const";
 
-import { AuthData } from "./contexts/authContext"
+import { AuthData } from "./contexts/authContext";
 
-import * as eva from "@eva-design/eva"
-import { ApplicationProvider, Layout } from "@ui-kitten/components"
-import PlaceSelect from "./screens/placeSelect"
-import PlaceDiscovery from "./screens/placeDiscovery"
-import Review from "./screens/review"
+import * as eva from "@eva-design/eva";
+import { ApplicationProvider, Layout } from "@ui-kitten/components";
+import PlaceSelect from "./screens/placeSelect";
+import PlaceDiscovery from "./screens/placeDiscovery";
+import Review from "./screens/review";
 
-const prefix = Linking.createURL("/")
+const prefix = Linking.createURL("/");
 
 export default function App() {
     // =================== deepLink ===================
@@ -40,65 +40,65 @@ export default function App() {
         screens: {
             inviteVerify: "inviteVerify/:inviteLink",
         },
-    }
+    };
 
     const linking = {
         prefixes: [prefix],
         config,
-    }
+    };
 
     // =================== useEffect ===================
 
     useEffect(() => {
-        authCheck()
-    }, [])
+        authCheck();
+    }, []);
 
     // =================== useState ===================
-    const [isLoading, setIsLoading] = useState<Boolean>(true)
+    const [isLoading, setIsLoading] = useState<Boolean>(true);
 
     const [authInformation, setAuthInformation] = useState({
         authStatus: LOADING,
         token: "",
         userId: "",
-    })
+    });
 
-    const [isSignedIn, setIsSignedIn] = useState<Boolean>(false)
+    const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
 
-    const Stack = createNativeStackNavigator<StackParamList>()
+    const Stack = createNativeStackNavigator<StackParamList>();
 
     // =================== function ===================
 
     const authCheck = async () => {
         try {
-            const localToken = await SecureStore.getItemAsync("key")
-            if (!localToken) throw new Error("can't get token")
-            console.log(API_URL)
+            const localToken = await SecureStore.getItemAsync("key");
+            if (!localToken) throw new Error("can't get token");
+            console.log(API_URL);
             const response = await axios.get(`${API_URL}/authCheck`, {
                 headers: {
                     authorization: localToken,
                 },
-            })
-            console.log("authCheck")
+            });
+            console.log("authCheck");
             setAuthInformation({
                 authStatus: SUCCESS,
                 token: localToken,
                 userId: response.data.userId,
-            })
-            setIsSignedIn(true)
-            setIsLoading(false)
+            });
+            setIsSignedIn(true);
+            setIsLoading(false);
         } catch (error) {
-            setIsLoading(false)
-            console.log(error)
+            setIsLoading(false);
+            console.log(error);
             if (axios.isAxiosError(error) && error.response) {
                 setAuthInformation({
                     authStatus: FAIL,
                     token: "",
                     userId: "",
-                })
-                console.log(error.response.data)
+                });
+                console.log(error.response.data);
             }
         }
-    }
+    };
 
     return (
         <ApplicationProvider {...eva} theme={eva.light}>
@@ -164,5 +164,5 @@ export default function App() {
                 </NavigationContainer>
             </AuthData.Provider>
         </ApplicationProvider>
-    )
+    );
 }
