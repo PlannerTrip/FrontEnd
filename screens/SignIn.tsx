@@ -17,28 +17,28 @@ const SignIn = ({ route }: Props) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-  const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
+    const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
 
     const insets = useSafeAreaInsets();
 
-  const login = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/login`, {
-        email: username,
-        password: password,
-      });
-      await SecureStore.setItemAsync("key", response.data.token);
-      if (setIsSignedIn) setIsSignedIn(true);
-      if (setAuthInformation)
-        setAuthInformation({
-          token: response.data.token,
-          authStatus: SUCCESS,
-          userId: response.data.userId,
-        });
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    const login = async () => {
+        try {
+            const response = await axios.post(`${API_URL}/login`, {
+                email: username,
+                password: password,
+            });
+            await SecureStore.setItemAsync("key", response.data.token);
+            if (setIsSignedIn) setIsSignedIn(true);
+            if (setAuthInformation)
+                setAuthInformation({
+                    token: response.data.token,
+                    authStatus: SUCCESS,
+                    userId: response.data.userId,
+                });
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
     return (
         <View

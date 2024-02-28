@@ -37,124 +37,146 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 const prefix = Linking.createURL("/");
 
 export default function App() {
-  // =================== deepLink ===================
-  const config = {
-    screens: {
-      inviteVerify: "inviteVerify/:inviteLink",
-    },
-  };
-
-  const linking = {
-    prefixes: [prefix],
-    config,
-  };
-
-  // =================== useEffect ===================
-
-  useEffect(() => {
-    authCheck();
-  }, []);
-
-  // =================== useState ===================
-  const [isLoading, setIsLoading] = useState<Boolean>(true);
-
-  const [authInformation, setAuthInformation] = useState({
-    authStatus: LOADING,
-    token: "",
-    userId: "",
-  });
-
-  const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
-
-  const Stack = createNativeStackNavigator<StackParamList>();
-
-  // =================== function ===================
-
-  const authCheck = async () => {
-    try {
-      const localToken = await SecureStore.getItemAsync("key");
-      if (!localToken) throw new Error("can't get token");
-      const response = await axios.get(`${API_URL}/authCheck`, {
-        headers: {
-          authorization: localToken,
+    // =================== deepLink ===================
+    const config = {
+        screens: {
+            inviteVerify: "inviteVerify/:inviteLink",
         },
-      });
-      console.log("authCheck");
-      setAuthInformation({
-        authStatus: SUCCESS,
-        token: localToken,
-        userId: response.data.userId,
-      });
-      setIsSignedIn(true);
-      setIsLoading(false);
-    } catch (error) {
-      setIsLoading(false);
-      console.log(error);
-      setAuthInformation({
-        authStatus: FAIL,
+    };
+
+    const linking = {
+        prefixes: [prefix],
+        config,
+    };
+
+    // =================== useEffect ===================
+
+    useEffect(() => {
+        authCheck();
+    }, []);
+
+    // =================== useState ===================
+    const [isLoading, setIsLoading] = useState<Boolean>(true);
+
+    const [authInformation, setAuthInformation] = useState({
+        authStatus: LOADING,
         token: "",
         userId: "",
-      });
-      // if (axios.isAxiosError(error) && error.response) {
-      //   setAuthInformation({
-      //     authStatus: FAIL,
-      //     token: "",
-      //     userId: "",
-      //   });
-      //   console.log(error.response.data);
-      // }
-    }
-  };
+    });
 
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ApplicationProvider {...eva} theme={eva.light}>
-        <AuthData.Provider
-          value={{
-            ...authInformation,
-            setIsSignedIn: setIsSignedIn,
-            setAuthInformation: setAuthInformation,
-          }}
-        >
-          <NavigationContainer linking={linking}>
-            <Stack.Navigator
-              screenOptions={{ headerShown: false, animation: "none" }}
-            >
-              {isLoading ? (
-                <Stack.Screen name="loading" component={Loading} />
-              ) : isSignedIn ? (
-                <>
-                  <Stack.Screen name="tab" component={Tab} />
-                  <Stack.Screen name="invitation" component={Invitation} />
-                  <Stack.Screen name="placeSelect" component={PlaceSelect} />
-                  <Stack.Screen
-                    name="placeInformation"
-                    component={PlaceInformation}
-                  />
-                  <Stack.Screen
-                    name="placeDiscovery"
-                    component={PlaceDiscovery}
-                  />
-                  <Stack.Screen name="planSelect" component={PlanSelect} />
-                  <Stack.Screen name="review" component={Review}
-                                />
+    const [isSignedIn, setIsSignedIn] = useState<Boolean>(false);
+
+    const Stack = createNativeStackNavigator<StackParamList>();
+
+    // =================== function ===================
+
+    const authCheck = async () => {
+        try {
+            const localToken = await SecureStore.getItemAsync("key");
+            if (!localToken) throw new Error("can't get token");
+            const response = await axios.get(`${API_URL}/authCheck`, {
+                headers: {
+                    authorization: localToken,
+                },
+            });
+            console.log("authCheck");
+            setAuthInformation({
+                authStatus: SUCCESS,
+                token: localToken,
+                userId: response.data.userId,
+            });
+            setIsSignedIn(true);
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
+            console.log(error);
+            setAuthInformation({
+                authStatus: FAIL,
+                token: "",
+                userId: "",
+            });
+            // if (axios.isAxiosError(error) && error.response) {
+            //   setAuthInformation({
+            //     authStatus: FAIL,
+            //     token: "",
+            //     userId: "",
+            //   });
+            //   console.log(error.response.data);
+            // }
+        }
+    };
+
+    return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <ApplicationProvider {...eva} theme={eva.light}>
+                <AuthData.Provider
+                    value={{
+                        ...authInformation,
+                        setIsSignedIn: setIsSignedIn,
+                        setAuthInformation: setAuthInformation,
+                    }}
+                >
+                    <NavigationContainer linking={linking}>
+                        <Stack.Navigator
+                            screenOptions={{
+                                headerShown: false,
+                                animation: "none",
+                            }}
+                        >
+                            {isLoading ? (
                                 <Stack.Screen
-                                    name="placeDiscovery"
-                                    component={PlaceDiscovery}
+                                    name="loading"
+                                    component={Loading}
                                 />
-                </>
-              ) : (
-                <>
-                  <Stack.Screen name="signIn" component={SignIn} />
-                  <Stack.Screen name="signUp" component={SignUp} />
-                </>
-              )}
+                            ) : isSignedIn ? (
+                                <>
+                                    <Stack.Screen name="tab" component={Tab} />
+                                    <Stack.Screen
+                                        name="invitation"
+                                        component={Invitation}
+                                    />
+                                    <Stack.Screen
+                                        name="placeSelect"
+                                        component={PlaceSelect}
+                                    />
+                                    <Stack.Screen
+                                        name="placeInformation"
+                                        component={PlaceInformation}
+                                    />
+                                    <Stack.Screen
+                                        name="placeDiscovery"
+                                        component={PlaceDiscovery}
+                                    />
+                                    <Stack.Screen
+                                        name="planSelect"
+                                        component={PlanSelect}
+                                    />
+                                    <Stack.Screen
+                                        name="review"
+                                        component={Review}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <Stack.Screen
+                                        name="signIn"
+                                        component={SignIn}
+                                    />
+                                    <Stack.Screen
+                                        name="signUp"
+                                        component={SignUp}
+                                    />
+                                </>
+                            )}
 
-              <Stack.Screen name="inviteVerify" component={InviteVerify} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </AuthData.Provider>
-      </ApplicationProvider>
-    </GestureHandlerRootView>
-  );
+                            <Stack.Screen
+                                name="inviteVerify"
+                                component={InviteVerify}
+                            />
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </AuthData.Provider>
+            </ApplicationProvider>
+        </GestureHandlerRootView>
+    );
 }
