@@ -3,17 +3,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { View } from "react-native";
 
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
-
-// ==================== svg ====================
-
-import LoadingSvg from "../assets/loading.svg";
-
 // ==================== type ====================
 import { StackParamList } from "../interface/navigate";
 
@@ -29,6 +18,7 @@ import { API_URL } from "@env";
 import { CLOSE, FAIL, LOADING, RELOAD, SUCCESS } from "../utils/const";
 import Modal from "../components/modal";
 import { AuthData } from "../contexts/authContext";
+import LoadingCustom from "../components/loading";
 
 type Props = NativeStackScreenProps<StackParamList, "inviteVerify">;
 
@@ -51,10 +41,6 @@ const InviteVerify = ({ route, navigation }: Props) => {
 
   //   ==================== useEffect ====================
 
-  useEffect(() => {
-    spin.value = withRepeat(withTiming(360, { duration: 2000 }), 0);
-  }, []);
-
   // verifyInviteLink
   useFocusEffect(
     useCallback(() => {
@@ -70,6 +56,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
   );
 
   useEffect(() => {
+    console.log("authStatus", authStatus, "tripId", tripId);
     if (authStatus === SUCCESS && tripId !== "") {
       if (currentStage === "invitation") {
         navigation.navigate("invitation", {
@@ -79,9 +66,14 @@ const InviteVerify = ({ route, navigation }: Props) => {
         navigation.navigate("placeSelect", {
           tripId: tripId,
         });
+      } else if (currentStage === "planSelect") {
+        navigation.navigate("planSelect", {
+          tripId: tripId,
+        });
       }
     }
-    if (authStatus === FAIL && tripId !== "") {
+    if (authStatus === FAIL) {
+      console.log("navigate signIn");
       navigation.navigate("signIn");
     }
   }, [authStatus, currentStage, tripId]);
@@ -143,18 +135,6 @@ const InviteVerify = ({ route, navigation }: Props) => {
 
   //   ==================== animate ====================
 
-  const spin = useSharedValue(0);
-
-  const style = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          rotate: `${spin.value}deg`,
-        },
-      ],
-    };
-  });
-
   return (
     <View
       style={{
@@ -166,9 +146,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
       className="bg-[#0000008C] h-[100%] flex-1 justify-center items-center"
     >
       {errorMessage.title === "" ? (
-        <Animated.View style={style}>
-          <LoadingSvg />
-        </Animated.View>
+        <LoadingCustom />
       ) : (
         <Modal
           title={errorMessage.title}
