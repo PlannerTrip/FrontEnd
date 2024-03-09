@@ -16,10 +16,14 @@ export type StackParamList = {
     type: string;
     forecastDate?: string;
     forecastDuration?: string;
+    from: string;
   };
-  loading: undefined;
-
-  inviteVerify: {
-    inviteLink?: string;
-  };
+    review: {
+        placeId: string;
+        placeName: string;
+    };
+    loading: undefined;
+    inviteVerify: {
+        inviteLink?: string;
+    };
 };

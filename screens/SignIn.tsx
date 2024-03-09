@@ -14,61 +14,64 @@ import { SUCCESS } from "../utils/const";
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
 const SignIn = ({ route }: Props) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-  const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
+    const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
 
-  const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
 
-  const login = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/login`, {
-        email: username,
-        password: password,
-      });
-      await SecureStore.setItemAsync("key", response.data.token);
-      if (setIsSignedIn) setIsSignedIn(true);
-      if (setAuthInformation)
-        setAuthInformation({
-          token: response.data.token,
-          authStatus: SUCCESS,
-          userId: response.data.userId,
-        });
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    const login = async () => {
+        console.log(API_URL, email, password);
 
-  return (
-    <View
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right,
-      }}
-    >
-      <Text>SignIn</Text>
-      <TextInput
-        className="h-[40px] m-[20px] border"
-        onChangeText={setUsername}
-        value={username}
-        placeholder="username"
-      />
-      <TextInput
-        className="h-[40px] m-[20px] border"
-        onChangeText={setPassword}
-        value={password}
-        placeholder="password"
-      />
-      <Pressable onPress={login}>
-        <View className="bg-yellow-50 h-[40px] p-[12px] m-[20px]">
-          <Text>Login</Text>
+        try {
+            const response = await axios.post(`${API_URL}/login`, {
+                email: email,
+                password: password,
+            });
+
+            await SecureStore.setItemAsync("key", response.data.token);
+            if (setIsSignedIn) setIsSignedIn(true);
+            if (setAuthInformation)
+                setAuthInformation({
+                    token: response.data.token,
+                    authStatus: SUCCESS,
+                    userId: response.data.userId,
+                });
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    return (
+        <View
+            style={{
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom,
+                paddingLeft: insets.left,
+                paddingRight: insets.right,
+            }}
+        >
+            <Text>SignIn</Text>
+            <TextInput
+                className="h-[40px] m-[20px] border"
+                onChangeText={setEmail}
+                value={email}
+                placeholder="email"
+            />
+            <TextInput
+                className="h-[40px] m-[20px] border"
+                onChangeText={setPassword}
+                value={password}
+                placeholder="password"
+            />
+            <Pressable onPress={login}>
+                <View className="bg-yellow-50 h-[40px] p-[12px] m-[20px]">
+                    <Text>Login</Text>
+                </View>
+            </Pressable>
         </View>
-      </Pressable>
-    </View>
-  );
+    );
 };
 
 export default SignIn;
