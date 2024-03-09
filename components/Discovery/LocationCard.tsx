@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react"
-import { View, Text, Image, Dimensions } from "react-native"
-import { useFocusEffect } from "@react-navigation/native"
+import { useState, useCallback } from "react";
+import { View, Text, Image, Dimensions } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
-import React from "react"
+import React from "react";
 
-import * as SecureStore from "expo-secure-store"
-import { API_URL } from "@env"
-import axios from "axios"
+import * as SecureStore from "expo-secure-store";
+import { API_URL } from "@env";
+import axios from "axios";
+import CoverImage from "../../assets/defaultCoverImage.svg";
 
 const LocationCard = ({ place }: { place: any }) => {
     const [data, setData] = useState({
@@ -20,15 +21,15 @@ const LocationCard = ({ place }: { place: any }) => {
         },
         type: "",
         tag: [],
-    })
+    });
 
-    const { width, height } = Dimensions.get("screen")
-    const widthTruncate = width - 2 * 16 - 2 * 8 - 16 - 128
+    const { width, height } = Dimensions.get("screen");
+    const widthTruncate = width - 2 * 16 - 2 * 8 - 16 - 128;
 
     // =============== axios ===============
     const getPlaceInformation = async () => {
         try {
-            const result = await SecureStore.getItemAsync("key")
+            const result = await SecureStore.getItemAsync("key");
             const response = await axios.get(`${API_URL}/place/information`, {
                 headers: {
                     authorization: result,
@@ -39,35 +40,42 @@ const LocationCard = ({ place }: { place: any }) => {
                     forecastDate: place.forecastDate,
                     forecastDuration: place.forecastDuration,
                 },
-            })
+            });
 
-            setData(response.data)
+            setData(response.data);
+            console.log("response.data");
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data)
+                console.log(error.response.data);
             }
         }
-    }
+    };
 
     // =============== useFocusEffect ===============
     useFocusEffect(
         useCallback(() => {
-            getPlaceInformation()
+            getPlaceInformation();
         }, [])
-    )
+    );
 
     return (
         <View className={`h-[144px] p-[8px]  flex flex-row ${widthTruncate} `}>
-            <View
-                className={`w-[128px] h-[128px] rounded-[5px] overflow-hidden border-[1px] border-[#54400E]`}
-            >
-                <Image
-                    source={{
-                        uri: data.coverImg[0],
-                    }}
-                    className="w-[100%] h-[100%]"
-                />
-            </View>
+            {data.coverImg ? (
+                <View
+                    className={`w-[128px] h-[128px] rounded-[5px] overflow-hidden border-[1px] border-[#54400E]`}
+                >
+                    {data.coverImg && (
+                        <Image
+                            source={{
+                                uri: data.coverImg[0],
+                            }}
+                            className="w-[100%] h-[100%]"
+                        />
+                    )}
+                </View>
+            ) : (
+                <CoverImage />
+            )}
 
             <View className="ml-[16px] ">
                 <Text
@@ -117,7 +125,7 @@ const LocationCard = ({ place }: { place: any }) => {
                 </View>
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default LocationCard
+export default LocationCard;

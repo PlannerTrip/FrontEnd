@@ -1,28 +1,28 @@
-import React from "react"
-import { View, Text, Pressable } from "react-native"
+import React from "react";
+import { View, Text, Pressable } from "react-native";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
-} from "react-native-safe-area-context"
+} from "react-native-safe-area-context";
 
-import * as SecureStore from "expo-secure-store"
-import axios, { AxiosResponse } from "axios"
+import * as SecureStore from "expo-secure-store";
+import axios, { AxiosResponse } from "axios";
 
-import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-import { API_URL } from "@env"
-import { StackParamList } from "../../interface/navigate"
-import LocationCard from "../../components/Discovery/locationCard"
+import { API_URL } from "@env";
+import { StackParamList } from "../../interface/navigate";
+import LocationCard from "../../components/Discovery/locationCard";
 
-type Props = NativeStackScreenProps<StackParamList, "discovery">
+type Props = NativeStackScreenProps<StackParamList, "discovery">;
 
 const Discovery = ({ navigation }: Props) => {
-    const insets = useSafeAreaInsets()
+    const insets = useSafeAreaInsets();
 
     const createTrip = async () => {
         try {
-            console.log("createTrip")
-            const token = await SecureStore.getItemAsync("key")
+            console.log("createTrip");
+            const token = await SecureStore.getItemAsync("key");
             const response: AxiosResponse<{ tripId: string }> =
                 await axios.post(
                     `${API_URL}/trip`,
@@ -32,17 +32,17 @@ const Discovery = ({ navigation }: Props) => {
                             Authorization: token,
                         },
                     }
-                )
+                );
             navigation.navigate("invitation", {
                 tripId: response.data.tripId,
-            })
+            });
         } catch (error) {
-            console.log(error)
+            console.log(error);
             if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data)
+                console.log(error.response.data);
             }
         }
-    }
+    };
 
     const handlePlaceInformation = (place) => {
         navigation.navigate("placeInformation", {
@@ -51,13 +51,15 @@ const Discovery = ({ navigation }: Props) => {
             forecastDate: place.forecastDate,
             forecastDuration: place.forecastDuration,
             from: "discovery",
-        })
-    }
+        });
+    };
 
     const mock = [
         { placeId: "P08000001", type: "ATTRACTION" },
         { placeId: "P03025435", type: "ATTRACTION" },
-    ]
+        { placeId: "P02000001", type: "ACCOMMODATION" },
+        { placeId: "P08000011", type: "RESTAURANT" },
+    ];
 
     return (
         <View>
@@ -97,11 +99,11 @@ const Discovery = ({ navigation }: Props) => {
                                 />
                             </Pressable>
                         </View>
-                    )
+                    );
                 })}
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default Discovery
+export default Discovery;

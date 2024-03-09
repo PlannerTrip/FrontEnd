@@ -14,7 +14,7 @@ import { SUCCESS } from "../utils/const";
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
 const SignIn = ({ route }: Props) => {
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
@@ -22,11 +22,14 @@ const SignIn = ({ route }: Props) => {
     const insets = useSafeAreaInsets();
 
     const login = async () => {
+        console.log(API_URL, email, password);
+
         try {
             const response = await axios.post(`${API_URL}/login`, {
-                email: username,
+                email: email,
                 password: password,
             });
+
             await SecureStore.setItemAsync("key", response.data.token);
             if (setIsSignedIn) setIsSignedIn(true);
             if (setAuthInformation)
@@ -52,9 +55,9 @@ const SignIn = ({ route }: Props) => {
             <Text>SignIn</Text>
             <TextInput
                 className="h-[40px] m-[20px] border"
-                onChangeText={setUsername}
-                value={username}
-                placeholder="username"
+                onChangeText={setEmail}
+                value={email}
+                placeholder="email"
             />
             <TextInput
                 className="h-[40px] m-[20px] border"
