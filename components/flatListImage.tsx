@@ -5,14 +5,12 @@ import PlaceImage from "../assets/defaultPlaceImage.svg";
 import ImageView from "react-native-image-viewing";
 const FlatListImage = ({
     item = [],
-
     width = 430,
     height = 332,
     indicator = 16,
     gradient = true,
 }: {
     item: string[];
-
     width?: number;
     height?: number;
     indicator?: number;
@@ -63,7 +61,6 @@ const FlatListImage = ({
     };
 
     useEffect(() => {
-        console.log(current, currentPage);
         if (!visible) {
             setCurrentPage(current);
             changeOffset(current);

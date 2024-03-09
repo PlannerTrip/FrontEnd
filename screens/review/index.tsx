@@ -28,6 +28,8 @@ import * as SecureStore from "expo-secure-store";
 import { API_URL } from "@env";
 import axios from "axios";
 
+import ImageView from "react-native-image-viewing";
+
 type Props = NativeStackScreenProps<StackParamList, "review">;
 
 const Review = ({ navigation, route }: Props) => {
@@ -44,6 +46,8 @@ const Review = ({ navigation, route }: Props) => {
     const [images, setImages] = useState<string[]>([]);
 
     const [disableButton, setDisableButton] = useState(true);
+    const [targetImage, setTargetImage] = useState(0);
+    const [visible, setIsVisible] = useState(false);
 
     const handlePost = () => {
         sendPost();
@@ -174,8 +178,26 @@ const Review = ({ navigation, route }: Props) => {
                             >
                                 {images &&
                                     images.map((uri, index) => {
+                                        console.log(uri);
                                         return (
-                                            <View className="mr-[8px] flex flex-row">
+                                            <Pressable
+                                                key={index}
+                                                className="mr-[8px] flex flex-row"
+                                                onPress={() => {
+                                                    setTargetImage(index);
+                                                    setIsVisible(true);
+                                                }}
+                                            >
+                                                <ImageView
+                                                    images={images.map(
+                                                        (uri) => ({ uri })
+                                                    )}
+                                                    imageIndex={targetImage}
+                                                    visible={visible}
+                                                    onRequestClose={() =>
+                                                        setIsVisible(false)
+                                                    }
+                                                />
                                                 <Image
                                                     source={{ uri: uri }}
                                                     className="rounded w-[80px] h-[80px] mr-[8px]"
@@ -198,7 +220,7 @@ const Review = ({ navigation, route }: Props) => {
                                                         );
                                                     }}
                                                 />
-                                            </View>
+                                            </Pressable>
                                         );
                                     })}
                                 {images.length < 5 && (

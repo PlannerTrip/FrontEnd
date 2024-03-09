@@ -27,6 +27,7 @@ import Pin from "../../assets/placeInformation/Pin.svg";
 import TelephoneActive from "../../assets/placeInformation/TelephoneActive.svg";
 import WebsiteActive from "../../assets/placeInformation/WebsiteActive.svg";
 import Check from "../../assets/placeInformation/Check.svg";
+import CloseCircle from "../../assets/placeInformation/CloseCircle.svg";
 
 import * as SecureStore from "expo-secure-store";
 import { API_URL } from "@env";
@@ -46,6 +47,7 @@ import { AuthData } from "../../contexts/authContext";
 import { FAIL, LOADING, SUCCESS } from "../../utils/const";
 import ConfirmModal from "../../components/confirmModal";
 import Loading from "../Loading";
+import { getCurrentLocation } from "../../utils/function";
 
 type Props = NativeStackScreenProps<StackParamList, "placeInformation">;
 
@@ -103,7 +105,12 @@ const PlaceInformation = ({ navigation, route }: Props) => {
     const [displayModalDeleteReview, setDisplayModalDeleteReview] =
         useState(false);
     const [displayModalBookmark, setDisplayModalBookmark] = useState(false);
-    const [displayModalCheckIn, setDisplayModalCheckIn] = useState(false);
+    const [displayModalCheckInFail, setDisplayModalCheckInFail] =
+        useState(false);
+    const [displayModalCheckInSuccess, setDisplayModalCheckInSuccess] =
+        useState(false);
+
+    const [permission, setPermission] = useState(true);
 
     const [targetReviewId, setTargetReviewId] = useState("");
 
@@ -129,7 +136,6 @@ const PlaceInformation = ({ navigation, route }: Props) => {
 
             const getData = response.data;
             setData(getData);
-            console.log("getData :", getData);
 
             const reviewsData = getData.review;
 
@@ -153,7 +159,7 @@ const PlaceInformation = ({ navigation, route }: Props) => {
 
             setDisableTelephone(getData.contact.phone ? false : true);
             setDisableWebsite(getData.contact.url ? false : true);
-            // setBookmark(getData.alreadyBookmark);
+
             setCheckIn(getData.alreadyCheckIn);
 
             setPlaceInformationStatus(SUCCESS);
@@ -209,6 +215,32 @@ const PlaceInformation = ({ navigation, route }: Props) => {
         }
     };
 
+    const postCheckIn = async (latitude: number, longitude: number) => {
+        try {
+            const response = await axios.post(
+                `${API_URL}/place/checkIn`,
+                {
+                    latitude: latitude,
+                    longitude: longitude,
+                    placeId: data.placeId,
+                },
+                {
+                    headers: {
+                        authorization: token,
+                    },
+                }
+            );
+            getPlaceInformation();
+            setDisplayModalCheckInSuccess(true);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                console.log(error.response.data);
+                console.log(error.response.data.error);
+                setDisplayModalCheckInFail(true);
+            }
+        }
+    };
+
     // =============== useFocusEffect ===============
     useFocusEffect(
         useCallback(() => {
@@ -235,12 +267,24 @@ const PlaceInformation = ({ navigation, route }: Props) => {
     };
 
     const handleDeleteReviewConfirm = async () => {
-        console.log("delete", targetReviewId);
         deleteReview(targetReviewId);
     };
 
     // =============== function ===============
-    const handleCheckIn = () => {};
+    const handleCheckIn = async () => {
+        const currentLocation = await getCurrentLocation();
+
+        if (currentLocation) {
+            const currentLatitude = currentLocation.coords.latitude;
+            const currentLongitude = currentLocation.coords.longitude;
+            console.log(data.latitude, data.longitude);
+            console.log(currentLatitude, currentLongitude);
+
+            postCheckIn(currentLatitude, currentLongitude);
+        } else {
+            setPermission(false);
+        }
+    };
 
     const handlePercentage = (n: number | undefined) => {
         if (n) {
@@ -340,7 +384,7 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                             <View className="mt-[12px] flex flex-row flex-wrap ">
                                 {data.tag.map((tag) => {
                                     return (
-                                        <View className="mt-[4px]">
+                                        <View className="mt-[4px]" key={tag}>
                                             <View className="self-start px-[4px] py-[2px] mr-[4px]  border border-[#54400E] rounded-[2px] justify-center">
                                                 <Text className="text-[12px] leading-[16px] text-[#54400E]">
                                                     {tag}
@@ -544,6 +588,68 @@ const PlaceInformation = ({ navigation, route }: Props) => {
                             onPressConfirm={() => {
                                 handleDeleteReviewConfirm();
                             }}
+                        />
+                    </View>
+                )}
+
+                {displayModalCheckInFail && (
+                    <View className="absolute z-[100] top-0 bg-[#0000008C] w-[100%] h-[100vh] flex-col justify-center items-center ">
+                        <ConfirmModal
+                            title={
+                                <View className="flex flex-col justify-center items-center">
+                                    <CloseCircle />
+                                    <Text className="mt-[8px] font-bold text-[16px] leading-[24px]">
+                                        ไม่สามารถเช็คอินได้
+                                    </Text>
+                                    {permission ? (
+                                        <>
+                                            <Text className="text-[12px] leading-[18px]">
+                                                คุณต้องอยู่ใกล้
+                                            </Text>
+                                            <Text className="text-[12px] leading-[18px]">
+                                                {data.placeName}
+                                            </Text>
+                                            <Text className="text-[12px] leading-[18px]">
+                                                ในระยะไม่เกิน 500 เมตร
+                                            </Text>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Text className="text-[12px] leading-[18px]">
+                                                โปรดตั้งค่าสิทธิ์การเข้าถึงตำแหน่งของแอปใหม่
+                                            </Text>
+                                        </>
+                                    )}
+                                </View>
+                            }
+                            cancelTitle={"ปิด"}
+                            onPressCancel={() => {
+                                setDisplayModalCheckInFail(false);
+                            }}
+                            confirm={false}
+                        />
+                    </View>
+                )}
+
+                {displayModalCheckInSuccess && (
+                    <View className="absolute z-[100] top-0 bg-[#0000008C] w-[100%] h-[100vh] flex-col justify-center items-center ">
+                        <ConfirmModal
+                            title={
+                                <View className="flex flex-col justify-center items-center">
+                                    <Check />
+                                    <Text className="mt-[8px] font-bold text-[16px] leading-[24px]">
+                                        เช็คอินสำเร็จ
+                                    </Text>
+                                    <Text className=" text-[12px] leading-[18px]">
+                                        {data.placeName}
+                                    </Text>
+                                </View>
+                            }
+                            cancelTitle={"ปิด"}
+                            onPressCancel={() => {
+                                setDisplayModalCheckInSuccess(false);
+                            }}
+                            confirm={false}
                         />
                     </View>
                 )}
