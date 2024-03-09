@@ -1,8 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useState } from "react";
-import { View, Image, FlatList } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Image, FlatList, Pressable, Text } from "react-native";
 import PlaceImage from "../assets/defaultPlaceImage.svg";
-
+import ImageView from "react-native-image-viewing";
 const FlatListImage = ({
     item = [],
 
@@ -18,11 +18,12 @@ const FlatListImage = ({
     indicator?: number;
     gradient?: boolean;
 }) => {
-    const [currentPage, setCurrentPage] = useState(0);
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const [current, setCurrent] = useState(0);
+    const [visible, setIsVisible] = useState(false);
     const renderItem = ({ item }: { item: string }) => {
         return (
-            <View
+            <Pressable
                 key={item}
                 style={{
                     alignItems: "center",
@@ -31,6 +32,7 @@ const FlatListImage = ({
                     justifyContent: "center",
                     backgroundColor: "#ECECEC",
                 }}
+                onPress={() => setIsVisible(true)}
             >
                 {item !== "" ? (
                     <Image
@@ -56,13 +58,44 @@ const FlatListImage = ({
                         end={{ x: 0, y: 1 }}
                     ></LinearGradient>
                 )}
+            </Pressable>
+        );
+    };
+
+    useEffect(() => {
+        console.log(current, currentPage);
+        if (!visible) {
+            setCurrentPage(current);
+            changeOffset(current);
+        }
+    }, [visible]);
+
+    const renderFooter = () => {
+        return (
+            <View
+                style={{
+                    padding: 32,
+                    alignItems: "center",
+                }}
+            >
+                <Text className="text-white text-[16px] font-bold">{`${
+                    current + 1
+                } / ${item.length}`}</Text>
             </View>
         );
+    };
+
+    const flatListRef = React.useRef();
+
+    const changeOffset = (newPage: number) => {
+        const offset = newPage * width;
+        flatListRef.current.scrollToOffset({ offset, animated: true });
     };
 
     return (
         <View>
             <FlatList
+                ref={flatListRef}
                 data={item}
                 renderItem={renderItem}
                 horizontal
@@ -75,6 +108,17 @@ const FlatListImage = ({
                     setCurrentPage(page < 0 ? 0 : page);
                 }}
                 bounces={false}
+                keyExtractor={(item, index) => index.toString()}
+            />
+            <ImageView
+                images={item.map((uri) => ({ uri }))}
+                imageIndex={currentPage}
+                visible={visible}
+                onRequestClose={() => setIsVisible(false)}
+                onImageIndexChange={(index) => {
+                    setCurrent(index);
+                }}
+                FooterComponent={renderFooter}
             />
             {item && item.length > 1 && (
                 <View
