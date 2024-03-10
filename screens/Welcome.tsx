@@ -1,9 +1,11 @@
 import React from "react";
 import { View, Text, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import ButtonCustom from "../components/button";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import { StackParamList } from "../interface/navigate";
+
+import ButtonCustom from "../components/button";
 
 type Props = NativeStackScreenProps<StackParamList, "welcome">;
 
@@ -38,7 +40,7 @@ const Welcome = ({ navigation }: Props) => {
                     styleText="text-[#261E00]"
                     styleButton="mt-[0px]"
                     onPress={() => {
-                        navigation.navigate("signIn");
+                        navigation.navigate("signIn", {});
                     }}
                 />
                 <ButtonCustom

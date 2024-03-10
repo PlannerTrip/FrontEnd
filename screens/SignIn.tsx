@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Keyboard, Pressable, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -18,9 +18,13 @@ import { isValidEmail } from "../utils/function";
 import ButtonCustom from "../components/button";
 import InputCustom from "../components/input";
 
+import Success from "../assets/welcome/check.svg";
+
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
 const SignIn = ({ route, navigation }: Props) => {
+    const { successRegister } = route.params;
+
     const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
     const insets = useSafeAreaInsets();
 
@@ -37,6 +41,22 @@ const SignIn = ({ route, navigation }: Props) => {
 
     const [hidePassword, setHidePassword] = useState(true);
     const [allowClearEmail, setAllowClearEmail] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(successRegister);
+
+    useEffect(() => {
+        let timeout: NodeJS.Timeout;
+
+        if (successRegister) {
+            timeout = setTimeout(() => {
+                setShowSuccess(false);
+            }, 5000);
+        }
+
+        return () => {
+            // Clear the timeout when the component is unmounted or successRegister changes
+            clearTimeout(timeout);
+        };
+    }, [successRegister]);
 
     const login = async () => {
         Keyboard.dismiss();
@@ -159,6 +179,23 @@ const SignIn = ({ route, navigation }: Props) => {
                     />
                 </View>
             </View>
+
+            {showSuccess && (
+                <View className="absolute bottom-[200px] w-[100%]">
+                    <View className="flex flex-col items-center bg-[#FCF8EF] p-[8px] mx-[32px] rounded-[10px] border border-[#54400E]">
+                        <View className="flex flex-row items-center">
+                            <Success />
+                            <Text className="text-[#261E00] text-[16px] leading-[24px] ml-[4px]">
+                                ลงทะเบียนสำเร็จ
+                            </Text>
+                        </View>
+
+                        <Text className="text-[#261E00] text-[16px] leading-[24px] mt-[4px]">
+                            กรุณากรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ
+                        </Text>
+                    </View>
+                </View>
+            )}
 
             <View className="flex flex-col items-center mb-[32px]">
                 <Pressable onPress={() => navigation.navigate("signUp")}>

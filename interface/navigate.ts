@@ -27,7 +27,9 @@ export type StackParamList = {
     };
 
     // authentication
-    signIn: undefined;
+    signIn: {
+        successRegister?: boolean;
+    };
     signUp: undefined;
     welcome: undefined;
     changePassword: undefined;

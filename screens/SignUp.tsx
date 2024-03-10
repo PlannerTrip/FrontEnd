@@ -13,7 +13,7 @@ import { isValidEmail } from "../utils/function";
 import ButtonCustom from "../components/button";
 import InputCustom from "../components/input";
 
-type Props = NativeStackScreenProps<StackParamList, "signIn">;
+type Props = NativeStackScreenProps<StackParamList, "signUp">;
 
 const SingUp = ({ route, navigation }: Props) => {
     const insets = useSafeAreaInsets();
@@ -114,7 +114,9 @@ const SingUp = ({ route, navigation }: Props) => {
                     email: email,
                     password: password,
                 });
-                navigation.navigate("signIn");
+                navigation.navigate("signIn", {
+                    successRegister: true,
+                });
             } catch (error) {
                 console.log(error);
                 setErrorEmail({
@@ -211,7 +213,7 @@ const SingUp = ({ route, navigation }: Props) => {
                     />
 
                     <ButtonCustom
-                        title="เข้าสู่ระบบ"
+                        title="ลงทะเบียน"
                         styleText="text-[#111111]"
                         onPress={register}
                     />
@@ -219,10 +221,10 @@ const SingUp = ({ route, navigation }: Props) => {
             </View>
 
             <View className="flex flex-col items-center mb-[32px]">
-                <Pressable onPress={() => navigation.navigate("signIn")}>
+                <Pressable onPress={() => navigation.navigate("signIn", {})}>
                     <Text className="text-[#261E00] text-[16px] leading-[24px] font-bold">
                         มีบัญชีแล้วต้องการ{" "}
-                        <Text className="text-[#FFC502]">ลงทะเบียน</Text>
+                        <Text className="text-[#FFC502]">เข้าสู่ระบบ</Text>
                     </Text>
                 </Pressable>
             </View>
