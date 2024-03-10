@@ -6,13 +6,16 @@ import * as SecureStore from "expo-secure-store";
 import { useEffect, useState, createContext } from "react";
 
 // =================== screen ===================
-import SignIn from "./screens/SignIn";
-import SignUp from "./screens/SignUp";
+
 import PlaceInformation from "./screens/placeInformation";
 import Loading from "./screens/Loading";
 import Invitation from "./screens/invitation";
 import Tab from "./screens/tab";
 import InviteVerify from "./screens/InviteVerify";
+import Welcome from "./screens/Welcome";
+import SignIn from "./screens/SignIn";
+import SignUp from "./screens/SignUp";
+import ChangePassword from "./screens/ChangePassword";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -33,8 +36,6 @@ import PlaceDiscovery from "./screens/placeDiscovery";
 import Review from "./screens/review";
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Welcome from "./screens/Welcome";
-import ChangePassword from "./screens/ChangePassword";
 
 const prefix = Linking.createURL("/");
 
