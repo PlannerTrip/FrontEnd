@@ -32,6 +32,7 @@ import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import TripSummary from "./screens/tripSummary";
 
 const prefix = Linking.createURL("/");
 
@@ -135,6 +136,7 @@ export default function App() {
                     component={PlaceDiscovery}
                   />
                   <Stack.Screen name="planSelect" component={PlanSelect} />
+                  <Stack.Screen name="tripSummary" component={TripSummary} />
                 </>
               ) : (
                 <>

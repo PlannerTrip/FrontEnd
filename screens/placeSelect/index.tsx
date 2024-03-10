@@ -12,7 +12,6 @@ import { AuthData } from "../../contexts/authContext";
 
 // ====================== svg ======================
 
-import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 import Plus from "../../assets/placeSelect/plus.svg";
 
 import { Place } from "../../interface/placeSelect";
@@ -24,6 +23,7 @@ import Loading from "../Loading";
 
 import { API_URL } from "@env";
 import { LOADING, SUCCESS } from "../../utils/const";
+import Header from "../../components/tripCreate/Header";
 
 type Props = NativeStackScreenProps<StackParamList, "placeSelect">;
 
@@ -58,6 +58,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
       if (isFocused) {
         setStatus(LOADING);
         setPlaces([]);
+        setOwner(false);
         const socket = io(`${API_URL}`, {
           transports: ["websocket"],
         });
@@ -263,15 +264,8 @@ const PlaceSelect = ({ route, navigation }: Props) => {
         }}
         className="bg-[#FFF] h-[100%]"
       >
-        {/* header */}
-        <View className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end ">
-          <Pressable onPress={onPressBack}>
-            <ArrowLeft />
-          </Pressable>
-          <Text className="text-[24px] font-bold h-[40px] ml-[8px]">
-            เลือกสถานที่ท่องเที่ยว
-          </Text>
-        </View>
+        <Header onPressBack={onPressBack} title="เลือกสถานที่ท่องเที่ยว" />
+
         {/* content */}
         {status === LOADING ? (
           <View

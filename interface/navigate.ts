@@ -4,6 +4,7 @@ export type StackParamList = {
   placeSelect: { tripId: string };
   placeDiscovery: { tripId: string };
   planSelect: { tripId: string };
+  tripSummary: { tripId: string };
   signIn: undefined;
   signUp: undefined;
   achievement: undefined;

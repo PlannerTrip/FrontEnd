@@ -8,15 +8,19 @@ import { StackParamList } from "../../interface/navigate";
 import { AuthData } from "../../contexts/authContext";
 import * as Location from "expo-location";
 
-// ====================== svg ======================
-
-import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
+// ====================== component ======================
 
 import ButtonCustom from "../../components/button";
+import PlaceCard from "../../components/planSelect/placeCard";
+import PlanCard from "../../components/planSelect/planCard";
+import Header from "../../components/tripCreate/Header";
+import ConfirmModal from "../../components/confirmModal";
+import Loading from "../Loading";
+
 import axios, { AxiosResponse } from "axios";
+
 import { API_URL } from "@env";
 import { Socket, io } from "socket.io-client";
-import Loading from "../Loading";
 import { LOADING, SUCCESS } from "../../utils/const";
 
 import {
@@ -31,11 +35,10 @@ import Animated, {
   useAnimatedStyle,
   runOnJS,
 } from "react-native-reanimated";
+
 import { Activity, Place, Plan, PlanPlace } from "../../interface/planSelect";
-import PlaceCard from "../../components/planSelect/placeCard";
-import PlanCard from "../../components/planSelect/planCard";
+
 import { changeDateFormat, distanceTwoPoint } from "../../utils/function";
-import ConfirmModal from "../../components/confirmModal";
 
 type Props = NativeStackScreenProps<StackParamList, "planSelect">;
 
@@ -110,7 +113,6 @@ const PlanSelect = ({ route, navigation }: Props) => {
     setStatus(LOADING);
     setCurrentPage(0);
     setScrollPosition(0);
-    setHeight(0);
     setScrollHeight(0);
     setActivityInput("");
     setConfirmModal({
@@ -190,6 +192,10 @@ const PlanSelect = ({ route, navigation }: Props) => {
     socket.on("updateStage", (data: { stage: string }) => {
       if (data.stage === "placeSelect") {
         navigation.navigate("placeSelect", {
+          tripId: tripId,
+        });
+      } else if (data.stage === "tripSummary") {
+        navigation.navigate("tripSummary", {
           tripId: tripId,
         });
       }
@@ -405,10 +411,24 @@ const PlanSelect = ({ route, navigation }: Props) => {
           authorization: token,
         },
       });
-      setDisplayConfirmLeaveModal(false)
+      setDisplayConfirmLeaveModal(false);
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const onPressNext = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        { stage: "tripSummary", tripId: tripId },
+        {
+          headers: {
+            authorization: token,
+          },
+        }
+      );
+    } catch (err) {}
   };
 
   // ====================== animate ======================
@@ -446,15 +466,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           setHeight(event.nativeEvent.layout.height);
         }}
       >
-        {/* header */}
-        <View className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end ">
-          <Pressable onPress={onPressBack}>
-            <ArrowLeft />
-          </Pressable>
-          <Text className="text-[24px] font-bold h-[40px] ml-[8px]">
-            เลือกวันท่องเที่ยว
-          </Text>
-        </View>
+        <Header onPressBack={onPressBack} title="เลือกวันท่องเที่ยว" />
         {/* content */}
         {status === LOADING ? (
           <View
@@ -572,7 +584,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
                     width="w-[351px]"
                     title="ต่อไป"
                     disable={false}
-                    onPress={() => {}}
+                    onPress={onPressNext}
                   />
                 </View>
               </View>
