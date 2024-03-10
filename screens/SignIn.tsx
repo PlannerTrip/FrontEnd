@@ -13,7 +13,7 @@ import { SUCCESS } from "../utils/const";
 
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
-const SignIn = ({ route }: Props) => {
+const SignIn = ({ route, navigation }: Props) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 

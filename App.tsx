@@ -33,6 +33,7 @@ import PlaceDiscovery from "./screens/placeDiscovery";
 import Review from "./screens/review";
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Welcome from "./screens/Welcome";
 
 const prefix = Linking.createURL("/");
 
@@ -158,6 +159,10 @@ export default function App() {
                                 </>
                             ) : (
                                 <>
+                                    <Stack.Screen
+                                        name="welcome"
+                                        component={Welcome}
+                                    />
                                     <Stack.Screen
                                         name="signIn"
                                         component={SignIn}
