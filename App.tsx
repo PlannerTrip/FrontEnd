@@ -34,6 +34,7 @@ import Review from "./screens/review";
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Welcome from "./screens/Welcome";
+import ChangePassword from "./screens/ChangePassword";
 
 const prefix = Linking.createURL("/");
 
@@ -170,6 +171,10 @@ export default function App() {
                                     <Stack.Screen
                                         name="signUp"
                                         component={SignUp}
+                                    />
+                                    <Stack.Screen
+                                        name="changePassword"
+                                        component={ChangePassword}
                                     />
                                 </>
                             )}

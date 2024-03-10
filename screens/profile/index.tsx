@@ -1,19 +1,27 @@
-import React from "react"
-import { View, Text } from "react-native"
+import React, { useContext } from "react";
+import { View, Text } from "react-native";
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
-} from "react-native-safe-area-context"
-import ButtonCustom from "../../components/button"
+} from "react-native-safe-area-context";
+import ButtonCustom from "../../components/button";
 
-import * as SecureStore from "expo-secure-store"
+import * as SecureStore from "expo-secure-store";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { StackParamList } from "../../interface/navigate";
+import { AuthData } from "../../contexts/authContext";
 
-const Profile = () => {
-    const insets = useSafeAreaInsets()
+type Props = NativeStackScreenProps<StackParamList, "profile">;
+
+const Profile = ({ navigation }: Props) => {
+    const insets = useSafeAreaInsets();
+
+    const { setIsSignedIn } = useContext(AuthData);
 
     const handleLogout = async () => {
-        await SecureStore.deleteItemAsync("key")
-    }
+        await SecureStore.deleteItemAsync("key");
+        setIsSignedIn && setIsSignedIn(false);
+    };
 
     return (
         <View
@@ -27,7 +35,7 @@ const Profile = () => {
             <Text>Profile</Text>
             <ButtonCustom title="Logout" onPress={handleLogout} />
         </View>
-    )
-}
+    );
+};
 
-export default Profile
+export default Profile;

@@ -30,4 +30,5 @@ export type StackParamList = {
     signIn: undefined;
     signUp: undefined;
     welcome: undefined;
+    changePassword: undefined;
 };

@@ -32,7 +32,7 @@ const Welcome = ({ navigation }: Props) => {
             <Text className="text-[#261E00] text-[40px] leading-[60px] font-bold">
                 เที่ยวTrip
             </Text>
-            <View className="w-[100%] p-[16px]">
+            <View className="w-[100%] p-[16px] mb-[16px]">
                 <ButtonCustom
                     title="เข้าสู่ระบบ"
                     styleText="text-[#261E00]"
