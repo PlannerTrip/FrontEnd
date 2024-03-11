@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Keyboard, Pressable, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 
 import axios from "axios";
 
@@ -65,19 +66,23 @@ const Forgot = ({ route, navigation }: Props) => {
     const [displayModalInvalidCode, setDisplayModalInvalidCode] =
         useState(false);
 
-    // =============== useEffect ===============
-    useEffect(() => {
-        if (forgotCode) {
-            setPageStatus(LOADING);
-            getVerifyForgotCode();
-        }
-    }, []);
+    // =============== useFocusEffect ===============
+    useFocusEffect(
+        useCallback(() => {
+            if (forgotCode) {
+                setPageStatus(LOADING);
+                getVerifyForgotCode();
+            }
+        }, [])
+    );
 
-    useEffect(() => {
-        if (email === "") {
-            setAllowClearEmail(false);
-        }
-    }, [email]);
+    useFocusEffect(
+        useCallback(() => {
+            if (email === "") {
+                setAllowClearEmail(false);
+            }
+        }, [email])
+    );
 
     // =============== axios ===============
     const getVerifyForgotCode = async () => {
