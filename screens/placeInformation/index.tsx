@@ -246,7 +246,7 @@ const PlaceInformation = ({ navigation, route }: Props) => {
     };
 
     const handleGoReview = () => {
-        navigation.navigate("review", {
+        navigation.navigate("writeReview", {
             placeName: data.placeName,
             placeId: data.placeId,
         });

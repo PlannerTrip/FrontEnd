@@ -17,7 +17,7 @@ export type StackParamList = {
         forecastDuration?: string;
         from: string;
     };
-    review: {
+    writeReview: {
         placeId: string;
         placeName: string;
     };
