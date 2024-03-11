@@ -5,30 +5,28 @@ import {
     Pressable,
     TextInput,
     ScrollView,
-    Button,
     Image,
-    Platform,
 } from "react-native";
-import {
-    SafeAreaProvider,
-    useSafeAreaInsets,
-} from "react-native-safe-area-context";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import ImageView from "react-native-image-viewing";
+
 import { StackParamList } from "../../interface/navigate";
+
+import * as ImagePicker from "expo-image-picker";
+import * as SecureStore from "expo-secure-store";
+
+import { API_URL } from "@env";
+
+import axios from "axios";
+// =============== svg ===============
 import ArrowLeft from "../../assets/ArrowLeft.svg";
 import DeleteImage from "../../assets/DeleteImage.svg";
 import ImageUploader from "../../assets/ImageUploader.svg";
 
+// =============== components ===============
 import ButtonCustom from "../../components/button";
 import Star from "../../components/placeInformation/star";
-import * as ImagePicker from "expo-image-picker";
-
-import * as SecureStore from "expo-secure-store";
-import { API_URL } from "@env";
-import axios from "axios";
-
-import ImageView from "react-native-image-viewing";
 
 type Props = NativeStackScreenProps<StackParamList, "review">;
 
