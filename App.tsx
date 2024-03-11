@@ -19,6 +19,7 @@ import Forgot from "./screens/Forgot";
 import WriteReview from "./screens/writeReview";
 import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
+import WriteBlog from "./screens/writeBlog";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -33,10 +34,18 @@ import { FAIL, LOADING, SUCCESS } from "./utils/const";
 import { AuthData } from "./contexts/authContext";
 
 import * as eva from "@eva-design/eva";
-import { ApplicationProvider, Layout } from "@ui-kitten/components";
+import {
+    ApplicationProvider,
+    IconRegistry,
+    Layout,
+} from "@ui-kitten/components";
 
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+import { EvaIconsPack } from "@ui-kitten/eva-icons";
+import { default as mapping } from "./mapping.json"; // <-- import mapping
+import { default as theme } from "./theme.json"; // <-- import mapping
 
 const prefix = Linking.createURL("/");
 
@@ -115,7 +124,11 @@ export default function App() {
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <ApplicationProvider {...eva} theme={eva.light}>
+            <ApplicationProvider
+                {...eva}
+                theme={{ ...eva.light, ...theme }}
+                customMapping={mapping}
+            >
                 <AuthData.Provider
                     value={{
                         ...authInformation,
@@ -123,6 +136,7 @@ export default function App() {
                         setAuthInformation: setAuthInformation,
                     }}
                 >
+                    <IconRegistry icons={EvaIconsPack} />
                     <NavigationContainer linking={linking}>
                         <Stack.Navigator
                             screenOptions={{
@@ -161,6 +175,10 @@ export default function App() {
                                     <Stack.Screen
                                         name="writeReview"
                                         component={WriteReview}
+                                    />
+                                    <Stack.Screen
+                                        name="writeBlog"
+                                        component={WriteBlog}
                                     />
                                 </>
                             ) : (
