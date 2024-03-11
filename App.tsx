@@ -6,13 +6,16 @@ import * as SecureStore from "expo-secure-store";
 import { useEffect, useState, createContext } from "react";
 
 // =================== screen ===================
-import SignIn from "./screens/SignIn";
-import SignUp from "./screens/SignUp";
+
 import PlaceInformation from "./screens/placeInformation";
 import Loading from "./screens/Loading";
 import Invitation from "./screens/invitation";
 import Tab from "./screens/tab";
 import InviteVerify from "./screens/InviteVerify";
+import Welcome from "./screens/Welcome";
+import SignIn from "./screens/SignIn";
+import SignUp from "./screens/SignUp";
+import Forgot from "./screens/Forgot";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -37,10 +40,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 const prefix = Linking.createURL("/");
 
 export default function App() {
+    console.log(prefix);
+
     // =================== deepLink ===================
     const config = {
         screens: {
             inviteVerify: "inviteVerify/:inviteLink",
+            forgot: "forgot/:forgotCode",
         },
     };
 
@@ -159,12 +165,20 @@ export default function App() {
                             ) : (
                                 <>
                                     <Stack.Screen
+                                        name="welcome"
+                                        component={Welcome}
+                                    />
+                                    <Stack.Screen
                                         name="signIn"
                                         component={SignIn}
                                     />
                                     <Stack.Screen
                                         name="signUp"
                                         component={SignUp}
+                                    />
+                                    <Stack.Screen
+                                        name="forgot"
+                                        component={Forgot}
                                     />
                                 </>
                             )}

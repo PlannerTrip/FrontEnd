@@ -35,7 +35,7 @@ const ConfirmModal = ({
                         <Pressable
                             onPress={onPressConfirm}
                             style={{ flex: 1 }}
-                            className="ml-[16px]"
+                            className={cancel ? "ml-[16px]" : ""}
                         >
                             <View className="h-[32px]  bg-[#FFC502] rounded flex justify-center items-center">
                                 <Text className="text-[16px] text-[#fff]">

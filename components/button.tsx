@@ -1,4 +1,5 @@
-import { View, Text, Pressable } from "react-native"
+import { View, Text, Pressable } from "react-native";
+import LoadingCustom from "./loading";
 
 const ButtonCustom = ({
     disable = false,
@@ -7,23 +8,30 @@ const ButtonCustom = ({
     onPress = () => {},
     fill = "solid",
     size = "middle",
+    styleText = "",
+    styleButton = "",
+    loading = false,
 }: {
-    disable?: boolean
-    title?: string
-    width?: string
-    onPress?: () => void
-    fill?: string
-    size?: string
+    disable?: boolean;
+    title?: string;
+    width?: string;
+    onPress?: () => void;
+    fill?: string;
+    size?: string;
+    styleText?: string;
+    styleButton?: string;
+    loading?: boolean;
 }) => {
+    if (loading) disable = true;
     return (
         <>
             <Pressable
                 onPress={() => {
-                    if (!disable) onPress()
+                    if (!disable) onPress();
                 }}
             >
                 <View
-                    className={`${width} mt-[8px] ${
+                    className={`${width} mt-[8px] ${styleButton} ${
                         size === "middle"
                             ? "h-[48px] p-[12px]"
                             : "h-[32px] p-[4px]"
@@ -42,14 +50,19 @@ const ButtonCustom = ({
                             fill === "solid"
                                 ? "text-white font-bold"
                                 : "text-[#FFC502]"
-                        } `}
+                        } ${styleText}  `}
                     >
                         {title}
                     </Text>
+                    {loading && (
+                        <View className="ml-[8px]">
+                            <LoadingCustom size="small" />
+                        </View>
+                    )}
                 </View>
             </Pressable>
         </>
-    )
-}
+    );
+};
 
-export default ButtonCustom
+export default ButtonCustom;
