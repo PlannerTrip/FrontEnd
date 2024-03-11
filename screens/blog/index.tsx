@@ -29,7 +29,11 @@ const Blog = ({ route, navigation }: Props) => {
                 className="absolute"
                 style={{ right: insets.right, bottom: 0 }}
             >
-                <Edit onPress={() => {}} />
+                <Edit
+                    onPress={() => {
+                        navigation.navigate("writeBlog");
+                    }}
+                />
             </View>
         </View>
     );

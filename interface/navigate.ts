@@ -17,14 +17,18 @@ export type StackParamList = {
         forecastDuration?: string;
         from: string;
     };
+
     writeReview: {
         placeId: string;
         placeName: string;
     };
+
     loading: undefined;
     inviteVerify: {
         inviteLink?: string;
     };
+    // blog
+    writeBlog: undefined;
 
     // authentication
     signIn: undefined;

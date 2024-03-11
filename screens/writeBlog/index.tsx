@@ -24,24 +24,33 @@ import axios from "axios";
 import ArrowLeft from "../../assets/ArrowLeft.svg";
 import DeleteImage from "../../assets/DeleteImage.svg";
 import ImageUploader from "../../assets/ImageUploader.svg";
+import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
 
 // =============== components ===============
 import ButtonCustom from "../../components/button";
 import Star from "../../components/placeInformation/star";
 
-type Props = NativeStackScreenProps<StackParamList, "writeReview">;
+import {
+    CalendarRange,
+    RangeDatepicker,
+    Icon,
+    IconElement,
+    Datepicker,
+} from "@ui-kitten/components";
 
-const WriteReview = ({ navigation, route }: Props) => {
+type Props = NativeStackScreenProps<StackParamList, "writeBlog">;
+
+const WriteBlog = ({ navigation, route }: Props) => {
     const insets = useSafeAreaInsets();
 
-    const { placeId, placeName } = route.params;
+    // const { placeId, placeName } = route.params;
 
     const handleGoBack = () => {
         navigation.goBack();
     };
 
-    const [rating, setRating] = useState(0);
     const [content, setContent] = useState("");
+    const [title, setTitle] = useState("");
     const [images, setImages] = useState<string[]>([]);
 
     const [disableButton, setDisableButton] = useState(true);
@@ -54,12 +63,12 @@ const WriteReview = ({ navigation, route }: Props) => {
 
     useFocusEffect(
         useCallback(() => {
-            if (content !== "" && rating > 0) {
+            if (content !== "") {
                 setDisableButton(false);
             } else {
                 setDisableButton(true);
             }
-        }, [rating, content])
+        }, [content])
     );
 
     const pickImage = async () => {
@@ -86,24 +95,23 @@ const WriteReview = ({ navigation, route }: Props) => {
 
             const formData = new FormData();
 
-            formData.append("rating", rating);
-            formData.append("content", content);
-            formData.append("placeId", placeId);
+            // formData.append("content", content);
+            // formData.append("placeId", placeId);
 
-            for (let i = 0; i < images.length; i++) {
-                formData.append("files", {
-                    uri: images[i],
-                    name: `image${i}.jpg`,
-                    type: "image/jpeg",
-                });
-            }
+            // for (let i = 0; i < images.length; i++) {
+            //     formData.append("files", {
+            //         uri: images[i],
+            //         name: `image${i}.jpg`,
+            //         type: "image/jpeg",
+            //     });
+            // }
 
-            const response = await axios.post(`${API_URL}/review`, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    authorization: result,
-                },
-            });
+            // const response = await axios.post(`${API_URL}/review`, formData, {
+            //     headers: {
+            //         "Content-Type": "multipart/form-data",
+            //         authorization: result,
+            //     },
+            // });
 
             handleGoBack();
         } catch (error) {
@@ -112,6 +120,12 @@ const WriteReview = ({ navigation, route }: Props) => {
                 console.log(error.response.data);
             }
         }
+    };
+
+    const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
+    const onSelectDatePicker = (range: CalendarRange<Date>) => {
+        console.log(range.startDate, range.endDate);
+        setDateRange({ startDate: range.startDate, endDate: range.endDate });
     };
 
     return (
@@ -145,10 +159,15 @@ const WriteReview = ({ navigation, route }: Props) => {
                 contentContainerStyle={{ flexGrow: 1 }}
             >
                 <View>
-                    <View className=" p-[16px] justify-center">
-                        <Text className="text-[24px] leading-[36px] font-bold">
-                            {placeName}
-                        </Text>
+                    <View className="p-[16px] justify-center">
+                        <TextInput
+                            value={title}
+                            className="text-[24px] leading-[36px] font-bold"
+                            onChangeText={setTitle}
+                            placeholder="ชื่อเรื่อง"
+                            placeholderTextColor={"#D9D9D9"}
+                            multiline={true}
+                        />
                     </View>
                     <View className="border-y border-[#D9D9D9] p-[16px]">
                         <TextInput
@@ -162,13 +181,15 @@ const WriteReview = ({ navigation, route }: Props) => {
                     </View>
 
                     <View className="p-[16px]  flex flex-col ">
-                        <View className="flex flex-row items-center">
-                            <Text className="text-[16px]  font-bold">
-                                รูปภาพ
-                            </Text>
-                            <Text className="text-[16px] leading-[24px] text-[#9898AA] ml-[4px]">
-                                ({images.length}/5)
-                            </Text>
+                        <View className="flex flex-row justify-between items-center">
+                            <View className="flex flex-row">
+                                <Text className="text-[16px] font-bold">
+                                    รูปภาพ
+                                </Text>
+                                <Text className="text-[16px] leading-[24px] text-[#9898AA] ml-[4px]">
+                                    ({images.length}/5)
+                                </Text>
+                            </View>
                         </View>
                         <View className="flex flex-row mt-[8px] overflow-scroll">
                             <ScrollView
@@ -220,6 +241,13 @@ const WriteReview = ({ navigation, route }: Props) => {
                                                         );
                                                     }}
                                                 />
+                                                {index === 0 && (
+                                                    <View className="h-[24px] w-[60px] bg-white flex justify-center items-center absolute bottom-[7px] left-[10px] rounded-[4px] border border-[#FFFFFF]">
+                                                        <Text className="text-[12px] leading-[18px]">
+                                                            รูปปก
+                                                        </Text>
+                                                    </View>
+                                                )}
                                             </Pressable>
                                         );
                                     })}
@@ -230,18 +258,44 @@ const WriteReview = ({ navigation, route }: Props) => {
                         </View>
                     </View>
 
-                    <View className="p-[16px]  flex flex-col border-t border-[#D9D9D9]">
+                    <View className="p-[16px] flex flex-col border-t border-[#D9D9D9]">
                         <Text className="text-[16px] font-bold">
-                            คะแนนของคุณ
+                            ทริปการท่องเที่ยวของคุณ
                         </Text>
-                        <View className="mt-[8px] items-center">
-                            <Star
-                                rating={rating}
-                                size="large"
-                                width="w-[300px]"
-                                setRating={setRating}
-                            />
-                        </View>
+
+                        <Text className="text-[16px] font-bold mt-[16px]">
+                            ทริปนี้เดินทางเมื่อไหร่
+                        </Text>
+
+                        <RangeDatepicker
+                            range={dateRange}
+                            onSelect={onSelectDatePicker}
+                            placeholder={() => (
+                                <View className="flex-row items-center">
+                                    <Text className="text-[#00000040] w-[142px]">
+                                        วันเริ่มต้น
+                                    </Text>
+                                    <HalfArrowRight />
+                                    <Text className="text-[#00000040]">
+                                        วันสุดท้าย
+                                    </Text>
+                                </View>
+                            )}
+                            placement={"top"}
+                            accessoryRight={
+                                <Icon
+                                    fill="#D9D9D9"
+                                    name="calendar"
+                                    onPress={() => {
+                                        console.log("TEST");
+                                    }}
+                                />
+                            }
+                        />
+
+                        <Text className="text-[16px] font-bold mt-[16px]">
+                            ทริปนี้แวะที่ไหนบ้าง
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -269,4 +323,4 @@ const WriteReview = ({ navigation, route }: Props) => {
     );
 };
 
-export default WriteReview;
+export default WriteBlog;
