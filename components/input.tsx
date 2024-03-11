@@ -1,6 +1,14 @@
-import { View, Text, StyleProp, ViewStyle } from "react-native";
+import {
+    Keyboard,
+    View,
+    Text,
+    StyleProp,
+    ViewStyle,
+    Pressable,
+} from "react-native";
 import React from "react";
 import { TextInput } from "react-native-paper";
+import { Icon } from "@ui-kitten/components";
 
 const InputCustom = ({
     password = false,
@@ -55,29 +63,6 @@ const InputCustom = ({
                 style={{
                     fontWeight: "bold",
                 }}
-                // right={
-                //     password ? (
-                //         <TextInput.Icon
-                //             onPress={() => {
-                //                 console.log(value);
-                //                 setHidePassword &&
-                //                     setHidePassword(!hidePassword);
-                //                 Keyboard.dismiss();
-                //             }}
-                //             icon={hidePassword ? "eye-off" : "eye"}
-                //         />
-                //     ) : (
-                //         allowClear && (
-                //             <TextInput.Icon
-                //                 onPress={() => {
-                //                     setValue("");
-                //                     setAllowClear && setAllowClear(false);
-                //                 }}
-                //                 icon={"close"}
-                //             />
-                //         )
-                //     )
-                // }
                 onChangeText={(text) => {
                     setValue(text);
                     if (setAllowClear) {
@@ -90,6 +75,41 @@ const InputCustom = ({
                 }}
                 onFocus={resetError}
             />
+
+            {(password || allowClear) && (
+                <Pressable
+                    className="absolute right-[0px] top-[6px] w-[60px] h-[50px] flex justify-center items-center"
+                    onPress={() => {
+                        if (password) {
+                            setHidePassword && setHidePassword(!hidePassword);
+                            Keyboard.dismiss();
+                        } else {
+                            setValue("");
+                            setAllowClear && setAllowClear(false);
+                        }
+                    }}
+                >
+                    {password ? (
+                        <Icon
+                            style={{ width: 20, height: 20 }}
+                            name={
+                                hidePassword
+                                    ? "eye-off-2-outline"
+                                    : "eye-outline"
+                            }
+                        />
+                    ) : (
+                        <>
+                            {allowClear && (
+                                <Icon
+                                    style={{ width: 20, height: 20 }}
+                                    name={"close-outline"}
+                                />
+                            )}
+                        </>
+                    )}
+                </Pressable>
+            )}
 
             <Text className="leading-[18px] mb-[6px] text-[12px] h-[18px] font-bold text-[#FF3141]">
                 {error.text}
