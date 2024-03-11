@@ -74,7 +74,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
         }
         if (authStatus === FAIL) {
             console.log("navigate signIn");
-            navigation.navigate("signIn", {});
+            navigation.navigate("signIn");
         }
     }, [authStatus, currentStage, tripId]);
 
@@ -126,7 +126,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
             if (authStatus === SUCCESS) {
                 navigation.navigate("tab");
             } else if (authStatus === FAIL) {
-                navigation.navigate("signIn", {});
+                navigation.navigate("signIn");
             }
         } else if (errorMessage.action === RELOAD) {
             // reset value

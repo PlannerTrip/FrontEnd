@@ -40,7 +40,7 @@ const Welcome = ({ navigation }: Props) => {
                     styleText="text-[#261E00]"
                     styleButton="mt-[0px]"
                     onPress={() => {
-                        navigation.navigate("signIn", {});
+                        navigation.navigate("signIn");
                     }}
                 />
                 <ButtonCustom

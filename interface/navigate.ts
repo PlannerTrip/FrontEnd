@@ -27,10 +27,10 @@ export type StackParamList = {
     };
 
     // authentication
-    signIn: {
-        successRegister?: boolean;
-    };
+    signIn: undefined;
     signUp: undefined;
     welcome: undefined;
-    changePassword: undefined;
+    forgot: {
+        forgotCode?: string;
+    };
 };

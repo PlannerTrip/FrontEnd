@@ -1,4 +1,5 @@
 import { View, Text, Pressable } from "react-native";
+import LoadingCustom from "./loading";
 
 const ButtonCustom = ({
     disable = false,
@@ -9,6 +10,7 @@ const ButtonCustom = ({
     size = "middle",
     styleText = "",
     styleButton = "",
+    loading = false,
 }: {
     disable?: boolean;
     title?: string;
@@ -18,7 +20,9 @@ const ButtonCustom = ({
     size?: string;
     styleText?: string;
     styleButton?: string;
+    loading?: boolean;
 }) => {
+    if (loading) disable = true;
     return (
         <>
             <Pressable
@@ -50,6 +54,11 @@ const ButtonCustom = ({
                     >
                         {title}
                     </Text>
+                    {loading && (
+                        <View className="ml-[8px]">
+                            <LoadingCustom size="small" />
+                        </View>
+                    )}
                 </View>
             </Pressable>
         </>

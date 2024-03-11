@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { Keyboard, Pressable, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+
 import axios from "axios";
 
 import * as SecureStore from "expo-secure-store";
@@ -12,24 +13,26 @@ import { StackParamList } from "../interface/navigate";
 
 import { AuthData } from "../contexts/authContext";
 
-import { SUCCESS } from "../utils/const";
-import { isValidEmail } from "../utils/function";
-
+// =============== components ===============
 import ButtonCustom from "../components/button";
 import InputCustom from "../components/input";
 
-import Success from "../assets/welcome/check.svg";
+// =============== utils ===============
+import { SUCCESS } from "../utils/const";
+import { isValidEmail } from "../utils/function";
 
 type Props = NativeStackScreenProps<StackParamList, "signIn">;
 
 const SignIn = ({ route, navigation }: Props) => {
-    const { successRegister } = route.params;
-
     const { setIsSignedIn, setAuthInformation } = useContext(AuthData);
+
     const insets = useSafeAreaInsets();
 
+    // =============== useState ===============
+    // email, password
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
     const [errorEmail, setErrorEmail] = useState({
         text: "",
         error: false,
@@ -39,25 +42,14 @@ const SignIn = ({ route, navigation }: Props) => {
         error: false,
     });
 
+    // input
     const [hidePassword, setHidePassword] = useState(true);
     const [allowClearEmail, setAllowClearEmail] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(successRegister);
 
-    useEffect(() => {
-        let timeout: NodeJS.Timeout;
+    // display
+    const [loadingButton, setLoadingButton] = useState(false);
 
-        if (successRegister) {
-            timeout = setTimeout(() => {
-                setShowSuccess(false);
-            }, 5000);
-        }
-
-        return () => {
-            // Clear the timeout when the component is unmounted or successRegister changes
-            clearTimeout(timeout);
-        };
-    }, [successRegister]);
-
+    // =============== handler ===============
     const login = async () => {
         Keyboard.dismiss();
 
@@ -90,6 +82,7 @@ const SignIn = ({ route, navigation }: Props) => {
         }
 
         if (!invalid) {
+            setLoadingButton(true);
             try {
                 const response = await axios.post(`${API_URL}/login`, {
                     email: email,
@@ -106,6 +99,8 @@ const SignIn = ({ route, navigation }: Props) => {
                     });
             } catch (error) {
                 console.log(error);
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                setLoadingButton(false);
                 setPassword("");
                 setErrorEmail({
                     text: "",
@@ -120,6 +115,7 @@ const SignIn = ({ route, navigation }: Props) => {
         }
     };
 
+    // =============== function ===============
     const resetError = () => {
         setErrorEmail({
             text: "",
@@ -174,28 +170,14 @@ const SignIn = ({ route, navigation }: Props) => {
 
                     <ButtonCustom
                         title="เข้าสู่ระบบ"
-                        styleText="text-[#111111]"
+                        styleText={
+                            loadingButton ? "text-white " : "text-[#111111]"
+                        }
                         onPress={login}
+                        loading={loadingButton}
                     />
                 </View>
             </View>
-
-            {showSuccess && (
-                <View className="absolute bottom-[200px] w-[100%]">
-                    <View className="flex flex-col items-center bg-[#FCF8EF] p-[8px] mx-[32px] rounded-[10px] border border-[#54400E]">
-                        <View className="flex flex-row items-center">
-                            <Success />
-                            <Text className="text-[#261E00] text-[16px] leading-[24px] ml-[4px]">
-                                ลงทะเบียนสำเร็จ
-                            </Text>
-                        </View>
-
-                        <Text className="text-[#261E00] text-[16px] leading-[24px] mt-[4px]">
-                            กรุณากรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบ
-                        </Text>
-                    </View>
-                </View>
-            )}
 
             <View className="flex flex-col items-center mb-[32px]">
                 <Pressable onPress={() => navigation.navigate("signUp")}>
@@ -205,7 +187,7 @@ const SignIn = ({ route, navigation }: Props) => {
                     </Text>
                 </Pressable>
                 <Pressable
-                    onPress={() => navigation.navigate("changePassword")}
+                    onPress={() => navigation.navigate("forgot", {})}
                     className="mt-[8px]"
                 >
                     <Text className="text-[#FFC502] text-[12px] leading-[18px] font-bold">

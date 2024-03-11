@@ -15,7 +15,7 @@ import InviteVerify from "./screens/InviteVerify";
 import Welcome from "./screens/Welcome";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
-import ChangePassword from "./screens/ChangePassword";
+import Forgot from "./screens/Forgot";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -40,10 +40,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 const prefix = Linking.createURL("/");
 
 export default function App() {
+    console.log(prefix);
+
     // =================== deepLink ===================
     const config = {
         screens: {
             inviteVerify: "inviteVerify/:inviteLink",
+            forgot: "forgot/:forgotCode",
         },
     };
 
@@ -174,8 +177,8 @@ export default function App() {
                                         component={SignUp}
                                     />
                                     <Stack.Screen
-                                        name="changePassword"
-                                        component={ChangePassword}
+                                        name="forgot"
+                                        component={Forgot}
                                     />
                                 </>
                             )}
