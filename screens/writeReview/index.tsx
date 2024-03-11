@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
     View,
     Text,
@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import ImageView from "react-native-image-viewing";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { StackParamList } from "../../interface/navigate";
 
@@ -28,9 +29,9 @@ import ImageUploader from "../../assets/ImageUploader.svg";
 import ButtonCustom from "../../components/button";
 import Star from "../../components/placeInformation/star";
 
-type Props = NativeStackScreenProps<StackParamList, "review">;
+type Props = NativeStackScreenProps<StackParamList, "writeReview">;
 
-const Review = ({ navigation, route }: Props) => {
+const WriteReview = ({ navigation, route }: Props) => {
     const insets = useSafeAreaInsets();
 
     const { placeId, placeName } = route.params;
@@ -51,14 +52,16 @@ const Review = ({ navigation, route }: Props) => {
         sendPost();
     };
 
-    useEffect(() => {
-        if (content !== "" && rating > 0) {
-            console.log("able");
-            setDisableButton(false);
-        } else {
-            setDisableButton(true);
-        }
-    }, [rating, content]);
+    useFocusEffect(
+        useCallback(() => {
+            if (content !== "" && rating > 0) {
+                console.log("able");
+                setDisableButton(false);
+            } else {
+                setDisableButton(true);
+            }
+        }, [rating, content])
+    );
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -103,9 +106,7 @@ const Review = ({ navigation, route }: Props) => {
                 },
             });
 
-            if (response.data.message === "success review") {
-                handleGoBack();
-            }
+            handleGoBack();
         } catch (error) {
             console.log("error", error);
             if (axios.isAxiosError(error) && error.response) {
@@ -267,4 +268,4 @@ const Review = ({ navigation, route }: Props) => {
     );
 };
 
-export default Review;
+export default WriteReview;

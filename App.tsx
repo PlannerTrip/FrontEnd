@@ -16,6 +16,9 @@ import Welcome from "./screens/Welcome";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
 import Forgot from "./screens/Forgot";
+import WriteReview from "./screens/writeReview";
+import PlaceSelect from "./screens/placeSelect";
+import PlaceDiscovery from "./screens/placeDiscovery";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -31,9 +34,7 @@ import { AuthData } from "./contexts/authContext";
 
 import * as eva from "@eva-design/eva";
 import { ApplicationProvider, Layout } from "@ui-kitten/components";
-import PlaceSelect from "./screens/placeSelect";
-import PlaceDiscovery from "./screens/placeDiscovery";
-import Review from "./screens/review";
+
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -158,8 +159,8 @@ export default function App() {
                                         component={PlanSelect}
                                     />
                                     <Stack.Screen
-                                        name="review"
-                                        component={Review}
+                                        name="writeReview"
+                                        component={WriteReview}
                                     />
                                 </>
                             ) : (

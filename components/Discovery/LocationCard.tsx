@@ -43,7 +43,6 @@ const LocationCard = ({ place }: { place: any }) => {
             });
 
             setData(response.data);
-            console.log("response.data");
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 console.log(error.response.data);
