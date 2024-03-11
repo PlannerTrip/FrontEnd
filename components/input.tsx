@@ -1,5 +1,5 @@
-import { Keyboard, View, Text, StyleProp, ViewStyle } from "react-native";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { View, Text, StyleProp, ViewStyle } from "react-native";
+import React from "react";
 import { TextInput } from "react-native-paper";
 
 const InputCustom = ({
@@ -55,29 +55,29 @@ const InputCustom = ({
                 style={{
                     fontWeight: "bold",
                 }}
-                right={
-                    password ? (
-                        <TextInput.Icon
-                            onPress={() => {
-                                console.log(value);
-                                setHidePassword &&
-                                    setHidePassword(!hidePassword);
-                                Keyboard.dismiss();
-                            }}
-                            icon={hidePassword ? "eye-off" : "eye"}
-                        />
-                    ) : (
-                        allowClear && (
-                            <TextInput.Icon
-                                onPress={() => {
-                                    setValue("");
-                                    setAllowClear && setAllowClear(false);
-                                }}
-                                icon={"close"}
-                            />
-                        )
-                    )
-                }
+                // right={
+                //     password ? (
+                //         <TextInput.Icon
+                //             onPress={() => {
+                //                 console.log(value);
+                //                 setHidePassword &&
+                //                     setHidePassword(!hidePassword);
+                //                 Keyboard.dismiss();
+                //             }}
+                //             icon={hidePassword ? "eye-off" : "eye"}
+                //         />
+                //     ) : (
+                //         allowClear && (
+                //             <TextInput.Icon
+                //                 onPress={() => {
+                //                     setValue("");
+                //                     setAllowClear && setAllowClear(false);
+                //                 }}
+                //                 icon={"close"}
+                //             />
+                //         )
+                //     )
+                // }
                 onChangeText={(text) => {
                     setValue(text);
                     if (setAllowClear) {
