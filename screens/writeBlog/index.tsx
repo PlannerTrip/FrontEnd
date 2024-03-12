@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     View,
     Text,
@@ -6,6 +6,9 @@ import {
     TextInput,
     ScrollView,
     Image,
+    KeyboardAvoidingView,
+    Platform,
+    Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -19,7 +22,7 @@ import * as SecureStore from "expo-secure-store";
 
 import { API_URL } from "@env";
 
-import axios from "axios";
+import axios, { Axios } from "axios";
 // =============== svg ===============
 import ArrowLeft from "../../assets/ArrowLeft.svg";
 import DeleteImage from "../../assets/DeleteImage.svg";
@@ -28,7 +31,6 @@ import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
 
 // =============== components ===============
 import ButtonCustom from "../../components/button";
-import Star from "../../components/placeInformation/star";
 
 import {
     CalendarRange,
@@ -36,7 +38,14 @@ import {
     Icon,
     IconElement,
     Datepicker,
+    Autocomplete,
+    AutocompleteItem,
 } from "@ui-kitten/components";
+
+import AutoCompleteCustom from "../../components/autoComplete";
+import { PlaceOption } from "../../interface/blog";
+import CoverImage from "../../assets/blog/defaultCoverImage.svg";
+import Close from "../../assets/blog/close.svg";
 
 type Props = NativeStackScreenProps<StackParamList, "writeBlog">;
 
@@ -45,6 +54,8 @@ const WriteBlog = ({ navigation, route }: Props) => {
 
     // const { placeId, placeName } = route.params;
 
+    const { width, height } = Dimensions.get("screen");
+
     const handleGoBack = () => {
         navigation.goBack();
     };
@@ -52,18 +63,19 @@ const WriteBlog = ({ navigation, route }: Props) => {
     const [content, setContent] = useState("");
     const [title, setTitle] = useState("");
     const [images, setImages] = useState<string[]>([]);
+    const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
+    const [selectedTrip, setSelectedTrip] = useState("");
+    const [selectedPlaces, setSelectedPlaces] = useState<PlaceOption[]>([]);
 
     const [disableButton, setDisableButton] = useState(true);
+    const [loadingButton, setLoadingButton] = useState(false);
     const [targetImage, setTargetImage] = useState(0);
     const [visible, setIsVisible] = useState(false);
 
-    const handlePost = () => {
-        sendPost();
-    };
-
+    // =============== useFocusEffect ===============
     useFocusEffect(
         useCallback(() => {
-            if (content !== "") {
+            if (content !== "" && title !== "") {
                 setDisableButton(false);
             } else {
                 setDisableButton(true);
@@ -71,6 +83,43 @@ const WriteBlog = ({ navigation, route }: Props) => {
         }, [content])
     );
 
+    // =============== axios ===============
+    const sendPost = async () => {
+        setLoadingButton(true);
+        try {
+            const result = await SecureStore.getItemAsync("key");
+
+            const formData = new FormData();
+
+            // formData.append("content", content);
+            // formData.append("placeId", placeId);
+
+            // for (let i = 0; i < images.length; i++) {
+            //     formData.append("files", {
+            //         uri: images[i],
+            //         name: `image${i}.jpg`,
+            //         type: "image/jpeg",
+            //     });
+            // }
+
+            const response = await axios.post(`${API_URL}/blog`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    authorization: result,
+                },
+            });
+
+            setLoadingButton(false);
+            handleGoBack();
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                console.log(error.response.data);
+            }
+            setLoadingButton(false);
+        }
+    };
+
+    // =============== image ===============
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -89,44 +138,141 @@ const WriteBlog = ({ navigation, route }: Props) => {
         }
     };
 
-    const sendPost = async () => {
-        try {
-            const result = await SecureStore.getItemAsync("key");
-
-            const formData = new FormData();
-
-            // formData.append("content", content);
-            // formData.append("placeId", placeId);
-
-            // for (let i = 0; i < images.length; i++) {
-            //     formData.append("files", {
-            //         uri: images[i],
-            //         name: `image${i}.jpg`,
-            //         type: "image/jpeg",
-            //     });
-            // }
-
-            // const response = await axios.post(`${API_URL}/review`, formData, {
-            //     headers: {
-            //         "Content-Type": "multipart/form-data",
-            //         authorization: result,
-            //     },
-            // });
-
-            handleGoBack();
-        } catch (error) {
-            console.log("error", error);
-            if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data);
-            }
-        }
-    };
-
-    const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
+    // =============== date ===============
     const onSelectDatePicker = (range: CalendarRange<Date>) => {
-        console.log(range.startDate, range.endDate);
         setDateRange({ startDate: range.startDate, endDate: range.endDate });
     };
+
+    const [optionsTrip, setOptionsTrip] = useState([]);
+    const [optionsPlace, setOptionsPlace] = useState<PlaceOption[]>([]);
+
+    const [searchTrip, setSearchTrip] = useState("");
+    const [searchPlace, setSearchPlace] = useState("");
+
+    const [loadingTrip, setLoadingTrip] = useState(false);
+    const [loadingPlace, setLoadingPlace] = useState(false);
+
+    const mock = [
+        {
+            coverImg:
+                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/Thumbnail/P03002579.jpg",
+            location: { district: "พระนคร", province: "กรุงเทพมหานคร" },
+            placeId: "P03002579",
+            placeName: "พระบรมมหาราชวัง",
+        },
+        {
+            coverImg:
+                "https://tatapi.tourismthailand.org/tatfs/Image/CustomPOI/Thumbnail/P03006845.jpeg",
+            location: { district: "บางกอกใหญ่", province: "กรุงเทพมหานคร" },
+            placeId: "P03006845",
+            placeName: "พระปรางค์วัดอรุณราชวรารามราชวรมหาวิหาร",
+        },
+        {
+            coverImg:
+                "https://tatapi.tourismthailand.org/tatfs/Image/CustomPOI/Thumbnail/P02000012.jpeg",
+            location: { district: "ดินแดง", province: "กรุงเทพมหานคร" },
+            placeId: "P02000012",
+            placeName: "โรงแรมเจ้าพระยาปาร์ค",
+        },
+        {
+            coverImg:
+                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/Thumbnail/P08023248.jpg",
+            location: { district: "บางขุนเทียน", province: "กรุงเทพมหานคร" },
+            placeId: "P08023248",
+            placeName: "63 ริช ชุงมัน พระราม 2",
+        },
+        {
+            coverImg:
+                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/Thumbnail/P13024171.jpg",
+            location: { district: "บางขุนเทียน", province: "กรุงเทพมหานคร" },
+            placeId: "P13024171",
+            placeName: "กราเนด้า คลินิกเวชกรรม สาขา เซ็นทรัลพระราม 2",
+        },
+        {
+            coverImg: "",
+            location: { district: "ธนบุรี", province: "กรุงเทพมหานคร" },
+            placeId: "P13024304",
+            placeName: "กราเนด้า คลินิกเวชกรรม สาขา เดอะมอลล์ ท่าพระ",
+        },
+        {
+            coverImg: "",
+            location: { district: "ปากเกร็ด", province: "นนทบุรี" },
+            placeId: "P06000014",
+            placeName: "กลุ่มแม่บ้านเกษตรกรคลองพระอุดม",
+        },
+        {
+            coverImg: "",
+            location: { district: "บ้านนาเดิม", province: "สุราษฎร์ธานี" },
+            placeId: "P08008824",
+            placeName: "ก๋วยเตี๋ยวเจ้าพระยา",
+        },
+        {
+            coverImg: "",
+            location: { district: "ลาดพร้าว", province: "กรุงเทพมหานคร" },
+            placeId: "P08004771",
+            placeName: "ก๋วยเตี๋ยวหมูเมืองพระรถ",
+        },
+        {
+            coverImg: "",
+            location: { district: "เมืองจันทบุรี", province: "จันทบุรี" },
+            placeId: "P08001007",
+            placeName: "ก๋วยเตี๋ยวหมูเลียงพระยาตรัง",
+        },
+    ];
+    // blogSearch
+    useFocusEffect(
+        useCallback(() => {
+            const abortController = new AbortController();
+            const signal = abortController.signal;
+
+            console.log("text", searchPlace);
+            if (searchPlace.length >= 2) {
+                (async () => {
+                    setLoadingPlace(true);
+                    try {
+                        const result = await SecureStore.getItemAsync("key");
+                        const response = await axios.get(
+                            `${API_URL}/place/blogSearch`,
+                            {
+                                headers: {
+                                    authorization: result,
+                                },
+                                params: {
+                                    input: searchPlace,
+                                },
+                                signal: signal,
+                            }
+                        );
+                        console.log(response.data);
+                        setOptionsPlace(response.data);
+                        setLoadingPlace(false);
+                    } catch (error) {
+                        if (axios.isAxiosError(error) && error.response) {
+                            console.log(error.response.data);
+                        }
+                        setOptionsPlace([]);
+                        setLoadingPlace(false);
+                    }
+                })();
+            }
+
+            return () => {
+                abortController.abort();
+            };
+        }, [searchPlace])
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            console.log("selectedTrip", selectedTrip);
+        }, [selectedTrip])
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            console.log("selectedPlaces", selectedPlaces);
+        }, [selectedPlaces])
+    );
 
     return (
         <View
@@ -157,8 +303,10 @@ const WriteBlog = ({ navigation, route }: Props) => {
                 showsHorizontalScrollIndicator={false}
                 bounces={false}
                 contentContainerStyle={{ flexGrow: 1 }}
+                automaticallyAdjustKeyboardInsets={true}
+                keyboardShouldPersistTaps="handled"
             >
-                <View>
+                <View style={{ paddingBottom: insets.bottom + 40 + 48 }}>
                     <View className="p-[16px] justify-center">
                         <TextInput
                             value={title}
@@ -225,7 +373,9 @@ const WriteBlog = ({ navigation, route }: Props) => {
                                                 />
                                                 <DeleteImage
                                                     className="ml-[-30px]"
-                                                    style={{ marginLeft: -30 }}
+                                                    style={{
+                                                        marginLeft: -30,
+                                                    }}
                                                     onPress={() => {
                                                         const updatedImages = [
                                                             ...images,
@@ -259,15 +409,27 @@ const WriteBlog = ({ navigation, route }: Props) => {
                     </View>
 
                     <View className="p-[16px] flex flex-col border-t border-[#D9D9D9]">
-                        <Text className="text-[16px] font-bold">
+                        <Text className="text-[16px] font-bold mb-[8px]">
                             ทริปการท่องเที่ยวของคุณ
                         </Text>
 
-                        <Text className="text-[16px] font-bold mt-[16px]">
+                        {/* Trip */}
+                        <AutoCompleteCustom
+                            selected={selectedTrip}
+                            setSelected={setSelectedTrip}
+                            placeholder="เลือกทริปการท่องเที่ยว"
+                            options={optionsTrip}
+                            search={searchTrip}
+                            setSearch={setSearchTrip}
+                            loading={loadingTrip}
+                        />
+
+                        <Text className="text-[16px] font-bold mt-[16px] mb-[8px]">
                             ทริปนี้เดินทางเมื่อไหร่
                         </Text>
 
                         <RangeDatepicker
+                            size="medium" // 40
                             range={dateRange}
                             onSelect={onSelectDatePicker}
                             placeholder={() => (
@@ -293,12 +455,102 @@ const WriteBlog = ({ navigation, route }: Props) => {
                             }
                         />
 
-                        <Text className="text-[16px] font-bold mt-[16px]">
+                        <Text className="text-[16px] font-bold mt-[16px] mb-[8px]">
                             ทริปนี้แวะที่ไหนบ้าง
                         </Text>
+
+                        {/* Place */}
+                        <AutoCompleteCustom
+                            selectedMultiple={selectedPlaces}
+                            setSelectedMultiple={setSelectedPlaces}
+                            placeholder="เลือกสถานที่ท่องเที่ยว"
+                            options={optionsPlace}
+                            search={searchPlace}
+                            setSearch={setSearchPlace}
+                            multiple={true}
+                            loading={loadingPlace}
+                        />
+
+                        <View className="my-[8px]">
+                            {selectedPlaces.map((place, index) => {
+                                const district = place.location.district;
+                                const province = place.location.province;
+                                const placeId = place.placeId;
+                                const placeName = place.placeName;
+                                const coverImg = place.coverImg;
+
+                                return (
+                                    <View
+                                        key={index}
+                                        className={`border border-[#54400E] p-[8px] flex flex-row rounded-[5px] mt-[16px]`}
+                                    >
+                                        {coverImg ? (
+                                            <Image
+                                                source={{
+                                                    uri: coverImg,
+                                                }}
+                                                className="w-[80px] h-[80px] rounded-[5px] border border-[#54400E]"
+                                            />
+                                        ) : (
+                                            <CoverImage />
+                                        )}
+
+                                        <View className="ml-[16px] flex flex-col justify-between flex-1 ">
+                                            <Text
+                                                style={{
+                                                    width:
+                                                        width -
+                                                        (16 * 2 +
+                                                            8 * 2 +
+                                                            16 +
+                                                            24) -
+                                                        100,
+                                                }}
+                                                className={`text-[14px] truncate font-bold`}
+                                                numberOfLines={1}
+                                            >
+                                                {placeName}
+                                            </Text>
+
+                                            <Text className="text-[12px] font-bold text-[#FFC502]">
+                                                {district}, {province}
+                                            </Text>
+
+                                            <Pressable
+                                                className="absolute right-0"
+                                                onPress={() => {
+                                                    console.log("", placeId);
+                                                    setSelectedPlaces(
+                                                        (prev) => {
+                                                            const index =
+                                                                prev.findIndex(
+                                                                    (item) =>
+                                                                        item.placeId ===
+                                                                        placeId
+                                                                );
+
+                                                            const updatedArray =
+                                                                [...prev];
+                                                            updatedArray.splice(
+                                                                index,
+                                                                1
+                                                            );
+                                                            return updatedArray;
+                                                        }
+                                                    );
+                                                }}
+                                            >
+                                                <Close />
+                                            </Pressable>
+                                        </View>
+                                    </View>
+                                );
+                            })}
+                        </View>
                     </View>
                 </View>
             </ScrollView>
+
             <View
                 className="bg-[#FFFFFF] flex px-[20px] pb-[20px] pt-[12px] absolute w-[100%] "
                 style={{
@@ -315,8 +567,11 @@ const WriteBlog = ({ navigation, route }: Props) => {
             >
                 <ButtonCustom
                     title="โพสต์"
-                    onPress={handlePost}
+                    onPress={() => {
+                        sendPost();
+                    }}
                     disable={disableButton}
+                    loading={loadingButton}
                 />
             </View>
         </View>

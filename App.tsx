@@ -151,6 +151,10 @@ export default function App() {
                                 />
                             ) : isSignedIn ? (
                                 <>
+                                    <Stack.Screen
+                                        name="writeBlog"
+                                        component={WriteBlog}
+                                    />
                                     <Stack.Screen name="tab" component={Tab} />
                                     <Stack.Screen
                                         name="invitation"
@@ -175,10 +179,6 @@ export default function App() {
                                     <Stack.Screen
                                         name="writeReview"
                                         component={WriteReview}
-                                    />
-                                    <Stack.Screen
-                                        name="writeBlog"
-                                        component={WriteBlog}
                                     />
                                 </>
                             ) : (

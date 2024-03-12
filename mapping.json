@@ -21,7 +21,7 @@
                     "variantGroups": {
                         "status": {
                             "basic": {
-                                "borderColor": "border-basic-color-4",
+                                "borderColor": "#D9D9D9",
                                 "backgroundColor": "white",
                                 "textColor": "black",
                                 "labelColor": "text-hint-color",
