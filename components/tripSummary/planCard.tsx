@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 
-import { Plan } from "../../interface/tripSummary";
+import { PlaceCard, Plan } from "../../interface/tripSummary";
 
 import TextTitle from "../tripCreate/TextTitle";
 import PlanPlaceCard from "./planPlaceCard";
@@ -15,59 +15,45 @@ import DateTimePicker, {
 
 import Empty from "../../assets/tripSummary/Empty.svg";
 
-const PlanCard = ({ dailyPlan }: { dailyPlan: Plan }) => {
+import axios from "axios";
+import { API_URL } from "@env";
+
+const PlanCard = ({
+  dailyPlan,
+  tripId,
+  token,
+  day,
+  date,
+}: {
+  dailyPlan: PlaceCard[];
+  tripId: string;
+  token: string;
+  day: number;
+  date: string;
+}) => {
   const today = new Date();
 
-  // ===================== useState =====================
-  const [plan, setPlan] = useState([
-    ...dailyPlan.places.map((item) => ({
-      id: item.placeId,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      type: "place",
-      name: item.placeName,
-      coverImg: item.covetImg,
-      location: item.location,
-      latitude: item.latitude,
-      longitude: item.longitude,
-    })),
-    ...dailyPlan.activity.map((item) => ({
-      id: item.activityId,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      type: "activity",
-      name: item.name,
-      coverImg: [],
-      location: { address: "", district: "", province: "" },
-      latitude: 0,
-      longitude: 0,
-    })),
-  ]);
-
   // ===================== function =====================
-  const handleChangeTime = (
+  const handleChangeTime = async (
     type: string,
     id: string,
     event: DateTimePickerEvent,
     date?: Date
   ) => {
-    if (date) {
-      const hours = date.getHours().toString().padStart(2, "0");
-      const minutes = date.getMinutes().toString().padStart(2, "0");
-      const formattedTime = `${hours}:${minutes}`;
-      console.log(formattedTime);
-      setPlan((plan) =>
-        plan.map((dailyPlan) => {
-          if (dailyPlan.id === id) {
-            if (type === "startTime") {
-              return { ...dailyPlan, startTime: formattedTime };
-            } else if (type === "endTime") {
-              return { ...dailyPlan, endTime: formattedTime };
-            }
-          }
-          return dailyPlan;
-        })
-      );
+    try {
+      if (date) {
+        const hours = date.getHours().toString().padStart(2, "0");
+        const minutes = date.getMinutes().toString().padStart(2, "0");
+        const formattedTime = `${hours}:${minutes}`;
+
+        await axios.put(
+          `${API_URL}/trip/planTime`,
+          { tripId, id, type, time: formattedTime },
+          { headers: { Authorization: token } }
+        );
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -91,13 +77,13 @@ const PlanCard = ({ dailyPlan }: { dailyPlan: Plan }) => {
     <View className="w-[358px] p-[16px] bg-white mt-[16px]">
       {/* header */}
       <View className="flex-row items-center">
-        <TextTitle title={`วันที่ ${dailyPlan.day}`} />
+        <TextTitle title={`วันที่ ${day}`} />
         <View className="ml-[8px]" />
-        <TextTitle title={changeDateFormat(dailyPlan.date)} color="#FFC502" />
+        <TextTitle title={changeDateFormat(date)} color="#FFC502" />
       </View>
 
       {/* content */}
-      {plan.length === 0 ? (
+      {dailyPlan.length === 0 ? (
         <View className="mt-[16px] w-[326px] h-[92px] flex items-center">
           <Empty />
 
@@ -109,7 +95,7 @@ const PlanCard = ({ dailyPlan }: { dailyPlan: Plan }) => {
         </View>
       ) : (
         <View>
-          {plan.map((item) => {
+          {dailyPlan.map((item) => {
             return (
               <View className="flex-row">
                 {/* time select */}

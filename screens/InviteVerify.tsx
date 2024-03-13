@@ -75,6 +75,8 @@ const InviteVerify = ({ route, navigation }: Props) => {
         navigation.navigate("tripSummary", {
           tripId: tripId,
         });
+      } else {
+        navigation.navigate("tab");
       }
     }
     if (authStatus === FAIL) {

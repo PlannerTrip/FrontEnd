@@ -55,7 +55,6 @@ const TripSummary = ({ route, navigation }: Props) => {
   // ====================== useState======================
 
   const [owner, setOwner] = useState(false);
-  const [places, setPlaces] = useState([]);
   const [confirmModal, setConfirmModal] = useState({
     display: false,
     title: <></>,
@@ -63,9 +62,10 @@ const TripSummary = ({ route, navigation }: Props) => {
   });
 
   const [status, setStatus] = useState(LOADING);
-  const [tripName, setTripName] = useState("");
   const [plan, setPlan] = useState<Plan[]>([]);
 
+  const [tripName, setTripName] = useState("");
+  const [tripNote, setTripNote] = useState("");
   const [member, setMember] = useState<Member[]>([]);
   const [date, setDate] = useState({ start: "", end: "" });
 
@@ -76,7 +76,6 @@ const TripSummary = ({ route, navigation }: Props) => {
       if (isFocused) {
         setStatus(LOADING);
         setMember([]);
-        setPlaces([]);
         // setOwner(false)
         setOwner(true);
         const socket = io(`${API_URL}`, {
@@ -106,6 +105,48 @@ const TripSummary = ({ route, navigation }: Props) => {
       console.log("Socket Error", error.message);
     });
 
+    socket.on("updateName", (data: { name: string }) => {
+      setTripName(data.name);
+    });
+
+    socket.on("updateNote", (data: { note: string }) => {
+      setTripNote(data.note);
+    });
+
+    socket.on(
+      "updatePlanTime",
+      (data: { id: string; time: string; type: string }) => {
+        setPlan((plan) =>
+          plan.map((dailyPlan) => {
+            dailyPlan.places = dailyPlan.places.map((place) => {
+              if (place.placeId === data.id) {
+                if (data.type === "startTime") {
+                  place.startTime = data.time;
+                } else {
+                  place.endTime = data.time;
+                }
+                console.log(place);
+              }
+              return place;
+            });
+
+            dailyPlan.activity = dailyPlan.activity.map((activity) => {
+              if (activity.activityId === data.id) {
+                if (data.type === "startTime") {
+                  activity.startTime = data.time;
+                } else {
+                  activity.endTime = data.time;
+                }
+              }
+              return activity;
+            });
+
+            return dailyPlan;
+          })
+        );
+      }
+    );
+
     socket.on("removeMember", (data: { userId: string }) => {
       if (userId === data.userId) {
         navigation.navigate("tab");
@@ -131,6 +172,8 @@ const TripSummary = ({ route, navigation }: Props) => {
           },
         }
       );
+      setTripName(response.data.information.name);
+      setTripNote(response.data.information.note);
       setMember(response.data.information.member);
       setDate(response.data.information.date);
       setPlan(response.data.plan);
@@ -186,6 +229,68 @@ const TripSummary = ({ route, navigation }: Props) => {
     }
   };
 
+  const onBlurTripName = async () => {
+    try {
+      await axios.put(
+        `${API_URL}/trip/name`,
+        { tripId: tripId, name: tripName },
+        {
+          headers: {
+            authorization: token,
+          },
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onBlurTripNote = async () => {
+    try {
+      await axios.put(
+        `${API_URL}/trip/note`,
+        {
+          tripId,
+          note: tripNote,
+        },
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const changeFormatToPlan = (dailyPlan: Plan) => {
+    return [
+      ...dailyPlan.places.map((item) => ({
+        id: item.placeId,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        type: "place",
+        name: item.placeName,
+        coverImg: item.covetImg,
+        location: item.location,
+        latitude: item.latitude,
+        longitude: item.longitude,
+      })),
+      ...dailyPlan.activity.map((item) => ({
+        id: item.activityId,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        type: "activity",
+        name: item.name,
+        coverImg: [],
+        location: { address: "", district: "", province: "" },
+        latitude: 0,
+        longitude: 0,
+      })),
+    ];
+  };
+
   return (
     <>
       <View
@@ -216,6 +321,7 @@ const TripSummary = ({ route, navigation }: Props) => {
                 <TextTitle title="ชื่อทริป" />
 
                 <TextInput
+                  onBlur={onBlurTripName}
                   onChangeText={setTripName}
                   value={tripName}
                   className="h-[32px]  border pl-[12px] w-[326px] rounded-md border-[#D9D9D9] mt-[8px] mb-[16px]"
@@ -234,8 +340,9 @@ const TripSummary = ({ route, navigation }: Props) => {
                 />
                 <TextTitle title="บันทึกเพิ่มเติม" />
                 <TextInput
-                  //   onChangeText={setTripName}
-                  //   value={tripName}
+                  onBlur={onBlurTripNote}
+                  onChangeText={setTripNote}
+                  value={tripNote}
                   className="border h-[78px] pl-[12px] w-[326px] rounded-md border-[#D9D9D9] mt-[8px] mb-[16px]"
                   multiline
                   numberOfLines={20}
@@ -277,8 +384,15 @@ const TripSummary = ({ route, navigation }: Props) => {
                   </Pressable>
                 </View>
               </View>
+              {/* plan */}
               {plan.map((dailyPlan) => (
-                <PlanCard dailyPlan={dailyPlan} />
+                <PlanCard
+                  dailyPlan={changeFormatToPlan(dailyPlan)}
+                  tripId={tripId}
+                  token={token}
+                  date={dailyPlan.date}
+                  day={dailyPlan.day}
+                />
               ))}
             </View>
           </ScrollView>
@@ -299,7 +413,6 @@ const TripSummary = ({ route, navigation }: Props) => {
               <ButtonCustom
                 width="w-[351px]"
                 title="สร้างทริป"
-                disable={places.length === 0}
                 onPress={onPressNextButton}
               />
             </View>

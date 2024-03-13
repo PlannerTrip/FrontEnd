@@ -118,7 +118,11 @@ export default function App() {
         >
           <NavigationContainer linking={linking}>
             <Stack.Navigator
-              screenOptions={{ headerShown: false, animation: "none" }}
+              screenOptions={{
+                headerShown: false,
+                animation: "none",
+                gestureEnabled: false,
+              }}
             >
               {isLoading ? (
                 <Stack.Screen name="loading" component={Loading} />

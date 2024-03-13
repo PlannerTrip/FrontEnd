@@ -9,12 +9,12 @@ const PlanPlaceCard = ({
   location,
   coverImg,
 }: {
-  startTime: string;
-  endTime: string;
-  distance: number;
-  location: { address: string; district: string; province: string };
-  name: string;
-  coverImg: string[];
+  startTime: string,
+  endTime: string,
+  distance: number,
+  location: { address: string, district: string, province: string },
+  name: string,
+  coverImg: string[],
 }) => {
   return (
     <View className="flex-row mt-[16px] w-[282px] h-[96px] border rounded-[5px] p-[8px]">
