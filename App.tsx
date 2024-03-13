@@ -6,13 +6,20 @@ import * as SecureStore from "expo-secure-store";
 import { useEffect, useState, createContext } from "react";
 
 // =================== screen ===================
-import SignIn from "./screens/SignIn";
-import SignUp from "./screens/SignUp";
+
 import PlaceInformation from "./screens/placeInformation";
 import Loading from "./screens/Loading";
 import Invitation from "./screens/invitation";
 import Tab from "./screens/tab";
 import InviteVerify from "./screens/InviteVerify";
+import Welcome from "./screens/Welcome";
+import SignIn from "./screens/SignIn";
+import SignUp from "./screens/SignUp";
+import Forgot from "./screens/Forgot";
+import WriteReview from "./screens/writeReview";
+import PlaceSelect from "./screens/placeSelect";
+import PlaceDiscovery from "./screens/placeDiscovery";
+import WriteBlog from "./screens/writeBlog";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -27,20 +34,30 @@ import { FAIL, LOADING, SUCCESS } from "./utils/const";
 import { AuthData } from "./contexts/authContext";
 
 import * as eva from "@eva-design/eva";
-import { ApplicationProvider, Layout } from "@ui-kitten/components";
-import PlaceSelect from "./screens/placeSelect";
-import PlaceDiscovery from "./screens/placeDiscovery";
+import {
+  ApplicationProvider,
+  IconRegistry,
+  Layout,
+} from "@ui-kitten/components";
+
 import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import TripSummary from "./screens/tripSummary";
 
+import { EvaIconsPack } from "@ui-kitten/eva-icons";
+import { default as mapping } from "./mapping.json"; // <-- import mapping
+import { default as theme } from "./theme.json"; // <-- import mapping
+
 const prefix = Linking.createURL("/");
 
 export default function App() {
+  console.log(prefix);
+
   // =================== deepLink ===================
   const config = {
     screens: {
       inviteVerify: "inviteVerify/:inviteLink",
+      forgot: "forgot/:forgotCode",
     },
   };
 
@@ -108,7 +125,11 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ApplicationProvider {...eva} theme={eva.light}>
+      <ApplicationProvider
+        {...eva}
+        theme={{ ...eva.light, ...theme }}
+        customMapping={mapping}
+      >
         <AuthData.Provider
           value={{
             ...authInformation,
@@ -116,12 +137,12 @@ export default function App() {
             setAuthInformation: setAuthInformation,
           }}
         >
+          <IconRegistry icons={EvaIconsPack} />
           <NavigationContainer linking={linking}>
             <Stack.Navigator
               screenOptions={{
                 headerShown: false,
                 animation: "none",
-                gestureEnabled: false,
               }}
             >
               {isLoading ? (
@@ -140,12 +161,16 @@ export default function App() {
                     component={PlaceDiscovery}
                   />
                   <Stack.Screen name="planSelect" component={PlanSelect} />
+                  <Stack.Screen name="writeReview" component={WriteReview} />
+                  <Stack.Screen name="writeBlog" component={WriteBlog} />
                   <Stack.Screen name="tripSummary" component={TripSummary} />
                 </>
               ) : (
                 <>
+                  <Stack.Screen name="welcome" component={Welcome} />
                   <Stack.Screen name="signIn" component={SignIn} />
                   <Stack.Screen name="signUp" component={SignUp} />
+                  <Stack.Screen name="forgot" component={Forgot} />
                 </>
               )}
 

@@ -5,22 +5,38 @@ export type StackParamList = {
   placeDiscovery: { tripId: string };
   planSelect: { tripId: string };
   tripSummary: { tripId: string };
-  signIn: undefined;
-  signUp: undefined;
-  achievement: undefined;
-  blog: undefined;
-  discovery: undefined;
-  profile: undefined;
-  tripPlanner: undefined;
-  placeInformation: {
-    placeId: string;
-    type: string;
-    forecastDate?: string;
-    forecastDuration?: string;
-  };
-  loading: undefined;
 
-  inviteVerify: {
-    inviteLink?: string;
-  };
+
+    achievement: undefined;
+    blog: undefined;
+    discovery: undefined;
+    profile: undefined;
+    tripPlanner: undefined;
+    placeInformation: {
+        placeId: string;
+        type: string;
+        forecastDate?: string;
+        forecastDuration?: string;
+        from: string;
+    };
+
+    writeReview: {
+        placeId: string;
+        placeName: string;
+    };
+
+    loading: undefined;
+    inviteVerify: {
+        inviteLink?: string;
+    };
+    // blog
+    writeBlog: undefined;
+
+    // authentication
+    signIn: undefined;
+    signUp: undefined;
+    welcome: undefined;
+    forgot: {
+        forgotCode?: string;
+    };
 };

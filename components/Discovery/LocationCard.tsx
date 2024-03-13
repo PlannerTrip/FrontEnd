@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react"
-import { View, Text, Image, Dimensions } from "react-native"
-import { useFocusEffect } from "@react-navigation/native"
+import { useState, useCallback } from "react";
+import { View, Text, Image, Dimensions } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
-import React from "react"
+import React from "react";
 
-import * as SecureStore from "expo-secure-store"
-import { API_URL } from "@env"
-import axios from "axios"
+import * as SecureStore from "expo-secure-store";
+import { API_URL } from "@env";
+import axios from "axios";
+import CoverImage from "../../assets/defaultCoverImage.svg";
 
 const LocationCard = ({ place }: { place: any }) => {
     const [data, setData] = useState({
@@ -20,15 +21,15 @@ const LocationCard = ({ place }: { place: any }) => {
         },
         type: "",
         tag: [],
-    })
+    });
 
-    const { width, height } = Dimensions.get("screen")
-    const widthTruncate = width - 2 * 16 - 2 * 8 - 16 - 128
+    const { width, height } = Dimensions.get("screen");
+    const widthTruncate = width - 2 * 16 - 2 * 8 - 16 - 128;
 
     // =============== axios ===============
     const getPlaceInformation = async () => {
         try {
-            const result = await SecureStore.getItemAsync("key")
+            const result = await SecureStore.getItemAsync("key");
             const response = await axios.get(`${API_URL}/place/information`, {
                 headers: {
                     authorization: result,
@@ -39,35 +40,41 @@ const LocationCard = ({ place }: { place: any }) => {
                     forecastDate: place.forecastDate,
                     forecastDuration: place.forecastDuration,
                 },
-            })
+            });
 
-            setData(response.data)
+            setData(response.data);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
-                console.log(error.response.data)
+                console.log(error.response.data);
             }
         }
-    }
+    };
 
     // =============== useFocusEffect ===============
     useFocusEffect(
         useCallback(() => {
-            getPlaceInformation()
+            getPlaceInformation();
         }, [])
-    )
+    );
 
     return (
         <View className={`h-[144px] p-[8px]  flex flex-row ${widthTruncate} `}>
-            <View
-                className={`w-[128px] h-[128px] rounded-[5px] overflow-hidden border-[1px] border-[#54400E]`}
-            >
-                <Image
-                    source={{
-                        uri: data.coverImg[0],
-                    }}
-                    className="w-[100%] h-[100%]"
-                />
-            </View>
+            {data.coverImg ? (
+                <View
+                    className={`w-[128px] h-[128px] rounded-[5px] overflow-hidden border-[1px] border-[#54400E]`}
+                >
+                    {data.coverImg && (
+                        <Image
+                            source={{
+                                uri: data.coverImg[0],
+                            }}
+                            className="w-[100%] h-[100%]"
+                        />
+                    )}
+                </View>
+            ) : (
+                <CoverImage />
+            )}
 
             <View className="ml-[16px] ">
                 <Text
@@ -78,27 +85,36 @@ const LocationCard = ({ place }: { place: any }) => {
                     {data.placeName}
                 </Text>
 
-                <Text
-                    style={{ width: widthTruncate }}
-                    className={`text-[16px] leading-[24px] truncate  mt-[8px] ${widthTruncate} w-[230px] `}
-                    numberOfLines={2}
-                >
-                    {data.introduction}
-                </Text>
+                {data.introduction && (
+                    <Text
+                        style={{ width: widthTruncate }}
+                        className={`text-[12px] leading-[18px] mb-[3px] truncate mt-[3px] ${widthTruncate} w-[230px] `}
+                        numberOfLines={3}
+                    >
+                        {data.introduction}
+                    </Text>
+                )}
 
-                <View className="mt-[4px] ">
-                    {data.tag.map((tag, index) => {
-                        return (
-                            <View className="self-start px-[4px]  py-[2px]  border border-[#54400E] rounded-[2px] justify-center">
-                                <Text className="text-[12px] leading-[16px] text-[#54400E]">
-                                    {tag}
-                                </Text>
-                            </View>
-                        )
-                    })}
+                <View
+                    className="mt-[4px] flex flex-row flex-wrap"
+                    style={{
+                        width: widthTruncate,
+                        height: data.introduction ? 26 : 26 + 18 * 3 + 6,
+                    }}
+                >
+                    {data.tag.map((tag, index) => (
+                        <View
+                            key={index}
+                            className="self-start px-[4px] mr-[4px] mb-[4px] border border-[#54400E] rounded-[2px] justify-center"
+                        >
+                            <Text className="text-[12px] leading-[16px] text-[#54400E]">
+                                {tag}
+                            </Text>
+                        </View>
+                    ))}
                 </View>
 
-                <View className="mt-[4px] flex flex-row justify-between">
+                <View className=" flex flex-row justify-between">
                     <Text className="text-[12px] font-bold text-[#FFC502]">
                         {data.location.district}, {data.location.province}
                     </Text>
@@ -108,7 +124,7 @@ const LocationCard = ({ place }: { place: any }) => {
                 </View>
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default LocationCard
+export default LocationCard;
