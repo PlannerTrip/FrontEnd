@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState, useContext } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AuthData } from "../contexts/authContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { View } from "react-native";
 
@@ -7,7 +9,6 @@ import { View } from "react-native";
 import { StackParamList } from "../interface/navigate";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useFocusEffect } from "@react-navigation/native";
 
 import * as SecureStore from "expo-secure-store";
 
@@ -16,8 +17,8 @@ import axios from "axios";
 // ==================== const ====================
 import { API_URL } from "@env";
 import { CLOSE, FAIL, LOADING, RELOAD, SUCCESS } from "../utils/const";
+
 import Modal from "../components/modal";
-import { AuthData } from "../contexts/authContext";
 import LoadingCustom from "../components/loading";
 
 type Props = NativeStackScreenProps<StackParamList, "inviteVerify">;
@@ -55,28 +56,36 @@ const InviteVerify = ({ route, navigation }: Props) => {
         }, [inviteLink, authStatus])
     );
 
-    useEffect(() => {
-        console.log("authStatus", authStatus, "tripId", tripId);
-        if (authStatus === SUCCESS && tripId !== "") {
-            if (currentStage === "invitation") {
-                navigation.navigate("invitation", {
-                    tripId: tripId,
-                });
-            } else if (currentStage === "placeSelect") {
-                navigation.navigate("placeSelect", {
-                    tripId: tripId,
-                });
-            } else if (currentStage === "planSelect") {
-                navigation.navigate("planSelect", {
-                    tripId: tripId,
-                });
-            }
-        }
-        if (authStatus === FAIL) {
-            console.log("navigate signIn");
-            navigation.navigate("signIn");
-        }
-    }, [authStatus, currentStage, tripId]);
+
+  useEffect(() => {
+    console.log("authStatus", authStatus, "tripId", tripId);
+    if (authStatus === SUCCESS && tripId !== "") {
+      if (currentStage === "invitation") {
+        navigation.navigate("invitation", {
+          tripId: tripId,
+        });
+      } else if (currentStage === "placeSelect") {
+        navigation.navigate("placeSelect", {
+          tripId: tripId,
+        });
+      } else if (currentStage === "planSelect") {
+        navigation.navigate("planSelect", {
+          tripId: tripId,
+        });
+      } else if (currentStage === "tripSummary") {
+        navigation.navigate("tripSummary", {
+          tripId: tripId,
+        });
+      } else {
+        navigation.navigate("tab");
+      }
+    }
+    if (authStatus === FAIL) {
+      console.log("navigate signIn");
+      navigation.navigate("signIn");
+    }
+  }, [authStatus, currentStage, tripId]);
+  
 
     //   ==================== function ====================
 

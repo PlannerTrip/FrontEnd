@@ -8,15 +8,19 @@ import { StackParamList } from "../../interface/navigate";
 import { AuthData } from "../../contexts/authContext";
 import * as Location from "expo-location";
 
-// ====================== svg ======================
-
-import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
+// ====================== component ======================
 
 import ButtonCustom from "../../components/button";
+import PlaceCard from "../../components/planSelect/placeCard";
+import PlanCard from "../../components/planSelect/planCard";
+import Header from "../../components/tripCreate/Header";
+import ConfirmModal from "../../components/confirmModal";
+import Loading from "../Loading";
+
 import axios, { AxiosResponse } from "axios";
+
 import { API_URL } from "@env";
 import { Socket, io } from "socket.io-client";
-import Loading from "../Loading";
 import { LOADING, SUCCESS } from "../../utils/const";
 
 import {
@@ -31,9 +35,9 @@ import Animated, {
   useAnimatedStyle,
   runOnJS,
 } from "react-native-reanimated";
+
 import { Activity, Place, Plan, PlanPlace } from "../../interface/planSelect";
-import PlaceCard from "../../components/planSelect/placeCard";
-import PlanCard from "../../components/planSelect/planCard";
+
 import { changeDateFormat, distanceTwoPoint } from "../../utils/function";
 
 type Props = NativeStackScreenProps<StackParamList, "planSelect">;
@@ -46,6 +50,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
   const { tripId } = route.params;
 
   const scrollRef = useRef<ScrollView>(null);
+  const flatList = useRef<FlatList>(null);
 
   // ====================== useState ======================
 
@@ -70,6 +75,9 @@ const PlanSelect = ({ route, navigation }: Props) => {
   const [scrollHeight, setScrollHeight] = useState(0);
 
   const [activityInput, setActivityInput] = useState("");
+
+  const [displayConfirmLeaveModal, setDisplayConfirmLeaveModal] =
+    useState(false);
 
   const isFocused = useIsFocused();
   // ====================== useFocusEffect ======================
@@ -105,7 +113,6 @@ const PlanSelect = ({ route, navigation }: Props) => {
     setStatus(LOADING);
     setCurrentPage(0);
     setScrollPosition(0);
-    setHeight(0);
     setScrollHeight(0);
     setActivityInput("");
     setConfirmModal({
@@ -126,9 +133,69 @@ const PlanSelect = ({ route, navigation }: Props) => {
       console.log("Socket Error", error.message);
     });
 
+    socket.on("removeMember", (data: { userId: string }) => {
+      if (userId === data.userId) {
+        navigation.navigate("tab");
+      } else {
+        // remove place
+        setPlaces((places) =>
+          places.reduce((result: Place[], current) => {
+            current.selectBy = current.selectBy.filter(
+              (id) => id !== data.userId
+            );
+
+            if (current.selectBy.length !== 0) {
+              result.push(current);
+            }
+
+            return result;
+          }, [])
+        );
+        // scroll flatList to index 0
+        if (flatList.current) {
+          flatList.current.scrollToIndex({ index: 0 });
+        }
+        setPlan((plan) =>
+          plan.map((dailyPlan) => {
+            dailyPlan.place = dailyPlan.place.reduce(
+              (resultPLace: PlanPlace[], currentPlace) => {
+                currentPlace.selectBy = currentPlace.selectBy.filter(
+                  (information) => information.userId !== data.userId
+                );
+                if (currentPlace.selectBy.length !== 0) {
+                  resultPLace.push(currentPlace);
+                }
+                return resultPLace;
+              },
+              []
+            );
+
+            dailyPlan.activity = dailyPlan.activity.reduce(
+              (resultActivity: Activity[], currentActivity) => {
+                currentActivity.selectBy = currentActivity.selectBy.filter(
+                  (information) => information.userId !== data.userId
+                );
+                if (currentActivity.selectBy.length !== 0) {
+                  resultActivity.push(currentActivity);
+                }
+                return resultActivity;
+              },
+              []
+            );
+
+            return dailyPlan;
+          })
+        );
+      }
+    });
+
     socket.on("updateStage", (data: { stage: string }) => {
       if (data.stage === "placeSelect") {
         navigation.navigate("placeSelect", {
+          tripId: tripId,
+        });
+      } else if (data.stage === "tripSummary") {
+        navigation.navigate("tripSummary", {
           tripId: tripId,
         });
       }
@@ -207,7 +274,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           }
         );
       } else {
-        // user click show modal confirm leave trip
+        setDisplayConfirmLeaveModal(true);
       }
     } catch (err) {}
   };
@@ -336,6 +403,34 @@ const PlanSelect = ({ route, navigation }: Props) => {
     }
   };
 
+  const onPressConfirmLeave = async () => {
+    try {
+      await axios.delete(`${API_URL}/trip/member`, {
+        data: { friendId: userId, tripId },
+        headers: {
+          authorization: token,
+        },
+      });
+      setDisplayConfirmLeaveModal(false);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressNext = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        { stage: "tripSummary", tripId: tripId },
+        {
+          headers: {
+            authorization: token,
+          },
+        }
+      );
+    } catch (err) {}
+  };
+
   // ====================== animate ======================
 
   const positionX = useSharedValue(0);
@@ -371,15 +466,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           setHeight(event.nativeEvent.layout.height);
         }}
       >
-        {/* header */}
-        <View className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end ">
-          <Pressable onPress={onPressBack}>
-            <ArrowLeft />
-          </Pressable>
-          <Text className="text-[24px] font-bold h-[40px] ml-[8px]">
-            เลือกวันท่องเที่ยว
-          </Text>
-        </View>
+        <Header onPressBack={onPressBack} title="เลือกวันท่องเที่ยว" />
         {/* content */}
         {status === LOADING ? (
           <View
@@ -394,7 +481,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
               className=" bg-[#EEEEEE]"
               onContentSizeChange={(w, h) => {
                 setScrollHeight(h);
-                if (scrollRef.current) {
+                if (scrollRef.current && scrollHeight !== 0) {
                   scrollRef.current.scrollTo({
                     y: Math.max(scrollPosition - (scrollHeight - h), 0),
                   });
@@ -442,6 +529,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
               <Animated.View style={animatedStyle} className=" w-[358px] ">
                 <GestureDetector gesture={pan}>
                   <FlatList
+                    ref={flatList}
                     data={places}
                     renderItem={({ item }) => (
                       <PlaceCard
@@ -496,7 +584,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
                     width="w-[351px]"
                     title="ต่อไป"
                     disable={false}
-                    onPress={() => {}}
+                    onPress={onPressNext}
                   />
                 </View>
               </View>
@@ -543,6 +631,19 @@ const PlanSelect = ({ route, navigation }: Props) => {
               </Pressable>
             </View>
           </View>
+        </View>
+      )}
+      {displayConfirmLeaveModal && (
+        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+          {/* delete trip */}
+          <ConfirmModal
+            title={<Text className="font-bold">คุณกำลังจะออกจากกลุ่ม</Text>}
+            confirmTitle="ออก"
+            onPressCancel={() => {
+              setDisplayConfirmLeaveModal(false);
+            }}
+            onPressConfirm={onPressConfirmLeave}
+          />
         </View>
       )}
     </>

@@ -1,9 +1,11 @@
 export type StackParamList = {
-    tab: undefined;
-    invitation: { tripId: string };
-    placeSelect: { tripId: string };
-    placeDiscovery: { tripId: string };
-    planSelect: { tripId: string };
+  tab: undefined;
+  invitation: { tripId: string };
+  placeSelect: { tripId: string };
+  placeDiscovery: { tripId: string };
+  planSelect: { tripId: string };
+  tripSummary: { tripId: string };
+
 
     achievement: undefined;
     blog: undefined;
