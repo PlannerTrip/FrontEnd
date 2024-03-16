@@ -37,32 +37,86 @@ const PlanCard = ({
 
   // ===================== function =====================
 
-  const compareTime = (a: string, b: string) => {};
+  const compareTime = (a: string, b: string) => {
+    const [hourA, minuteA] = a.split(":").map(Number);
+    const [hourB, minuteB] = b.split(":").map(Number);
+
+    if (hourA !== hourB) {
+      return hourA - hourB; // Sort by hour first
+    } else {
+      return minuteA - minuteB; // If hours are equal, sort by minute
+    }
+  };
 
   const handleChangeTime = async (
     type: string,
     id: string,
     event: DateTimePickerEvent,
+    startOrEndTime: string,
     date?: Date,
   ) => {
     try {
       const timeTable = dailyPlan.map((dailyPlan) => [
         dailyPlan.startTime,
         dailyPlan.endTime,
+        dailyPlan.id,
       ]);
 
-      console.log(timeTable);
-
       if (date) {
+        let validate = true;
         const hours = date.getHours().toString().padStart(2, "0");
         const minutes = date.getMinutes().toString().padStart(2, "0");
         const formattedTime = `${hours}:${minutes}`;
 
-        await axios.put(
-          `${API_URL}/trip/planTime`,
-          { tripId, id, type, time: formattedTime },
-          { headers: { Authorization: token } },
-        );
+        // check startTime < endTime
+        if (
+          type === "startTime" &&
+          compareTime(formattedTime, startOrEndTime) > 0 &&
+          startOrEndTime !== ""
+        ) {
+          validate = false;
+        } else if (
+          type === "endTime" &&
+          compareTime(formattedTime, startOrEndTime) < 0 &&
+          startOrEndTime !== ""
+        ) {
+          validate = false;
+        }
+        const currentTime =
+          type === "startTime"
+            ? [formattedTime, startOrEndTime]
+            : [startOrEndTime, formattedTime];
+
+        // check any time in this timeRange
+        if (validate) {
+          validate = timeTable.every((time) => {
+            console.log(time);
+            if (
+              startOrEndTime === "" ||
+              time[2] === id ||
+              time.some((item) => item === "")
+            ) {
+              return true;
+            }
+
+            if (
+              (compareTime(time[0], currentTime[1]) < 0 &&
+                compareTime(time[0], currentTime[0]) > 0) ||
+              (compareTime(time[1], currentTime[1]) < 0 &&
+                compareTime(time[1], currentTime[0]) > 0)
+            ) {
+              return false;
+            }
+            return true;
+          });
+        }
+        if (validate) {
+          await axios.put(
+            `${API_URL}/trip/planTime`,
+            { tripId, id, type, time: formattedTime },
+            { headers: { Authorization: token } },
+          );
+        }
       }
     } catch (err) {
       console.log(err);
@@ -141,7 +195,13 @@ const PlanCard = ({
                         value={formatTime(item.startTime)}
                         mode="time"
                         onChange={(event: DateTimePickerEvent, date?: Date) => {
-                          handleChangeTime("startTime", item.id, event, date);
+                          handleChangeTime(
+                            "startTime",
+                            item.id,
+                            event,
+                            item.endTime,
+                            date,
+                          );
                         }}
                       />
 
@@ -149,7 +209,13 @@ const PlanCard = ({
                         value={formatTime(item.endTime)}
                         mode="time"
                         onChange={(event: DateTimePickerEvent, date?: Date) => {
-                          handleChangeTime("endTime", item.id, event, date);
+                          handleChangeTime(
+                            "endTime",
+                            item.id,
+                            event,
+                            item.startTime,
+                            date,
+                          );
                         }}
                       />
                     </View>
