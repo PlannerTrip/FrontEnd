@@ -2,6 +2,7 @@ import { Text, Image, View } from "react-native";
 import TextTitle from "../tripCreate/TextTitle";
 
 const PlanPlaceCard = ({
+  index,
   startTime,
   endTime,
   name,
@@ -9,12 +10,13 @@ const PlanPlaceCard = ({
   location,
   coverImg,
 }: {
-  startTime: string,
-  endTime: string,
-  distance: number,
-  location: { address: string, district: string, province: string },
-  name: string,
-  coverImg: string[],
+  index: number;
+  startTime: string;
+  endTime: string;
+  distance: number;
+  location: { address: string; district: string; province: string };
+  name: string;
+  coverImg: string[];
 }) => {
   return (
     <View className="flex-row mt-[16px] w-[282px] h-[96px] border rounded-[5px] p-[8px]">
@@ -35,7 +37,9 @@ const PlanPlaceCard = ({
         {/* distant */}
         <View className="flex-row mt-[4px] items-center ">
           <Text className="text-[#FFC502] text-[12px] font-bold leading-[18px]">
-            {`ห่างออกไป ${distance.toFixed(2)} กม.`}
+            {index === 0
+              ? `จุดเริ่มต้น`
+              : `ห่างจากจุดที่แล้ว ${distance.toFixed(2)} กม.`}
           </Text>
         </View>
       </View>

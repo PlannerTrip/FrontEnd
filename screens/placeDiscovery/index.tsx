@@ -61,7 +61,7 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
           console.log("didnt focus");
         };
       }
-    }, [tripId, isFocused])
+    }, [tripId, isFocused]),
   );
 
   // ====================== function ======================
@@ -72,6 +72,14 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
     });
 
     socket.emit("joinTrip", tripId);
+
+    socket.on("updateStage", (data: { stage: string }) => {
+      if (data.stage === "planSelect") {
+        navigation.navigate("planSelect", { tripId: tripId });
+      } else if (data.stage === "invitation") {
+        navigation.navigate("invitation", { tripId: tripId });
+      }
+    });
 
     socket.on("connect_error", (error) => {
       console.log("Socket Error", error.message);
@@ -130,7 +138,7 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
       setPlaces((places) =>
         places.map((place) => {
@@ -138,7 +146,7 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
             return { ...place, alreadyAdd: !place.alreadyAdd };
           }
           return place;
-        })
+        }),
       );
     } catch (err) {
       console.log(err);

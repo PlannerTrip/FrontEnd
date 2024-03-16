@@ -47,6 +47,7 @@ import TripSummary from "./screens/tripSummary";
 import { EvaIconsPack } from "@ui-kitten/eva-icons";
 import { default as mapping } from "./mapping.json"; // <-- import mapping
 import { default as theme } from "./theme.json"; // <-- import mapping
+import TripMember from "./screens/tripMember";
 
 const prefix = Linking.createURL("/");
 
@@ -164,6 +165,7 @@ export default function App() {
                   <Stack.Screen name="writeReview" component={WriteReview} />
                   <Stack.Screen name="writeBlog" component={WriteBlog} />
                   <Stack.Screen name="tripSummary" component={TripSummary} />
+                  <Stack.Screen name="tripMember" component={TripMember} />
                 </>
               ) : (
                 <>

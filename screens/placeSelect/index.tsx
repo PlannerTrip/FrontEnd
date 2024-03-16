@@ -71,7 +71,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
           console.log("didnt focus");
         };
       }
-    }, [tripId, isFocused])
+    }, [tripId, isFocused]),
   );
 
   // ====================== function ======================
@@ -94,7 +94,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
         setPlaces((places) =>
           places.reduce((result: Place[], current) => {
             current.selectBy = current.selectBy.filter(
-              (id) => id.userId !== data.userId
+              (id) => id.userId !== data.userId,
             );
 
             if (current.selectBy.length !== 0) {
@@ -102,7 +102,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
             }
 
             return result;
-          }, [])
+          }, []),
         );
       }
     });
@@ -113,7 +113,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
 
     socket.on("removePlace", (data: { placeId: string }) => {
       setPlaces((places) =>
-        places.filter((place) => place.placeId !== data.placeId)
+        places.filter((place) => place.placeId !== data.placeId),
       );
     });
 
@@ -130,9 +130,9 @@ const PlaceSelect = ({ route, navigation }: Props) => {
               return { ...place, selectBy: data.selectBy };
             }
             return place;
-          })
+          }),
         );
-      }
+      },
     );
 
     socket.on("updateStage", (data: { stage: string }) => {
@@ -167,21 +167,23 @@ const PlaceSelect = ({ route, navigation }: Props) => {
 
   const onPressBack = async () => {
     try {
-      if (owner) {
-        await axios.post(
-          `${API_URL}/trip/stage`,
-          {
-            tripId,
-            stage: "invitation",
-          },
-          {
-            headers: {
-              authorization: token,
+      if (status !== LOADING) {
+        if (owner) {
+          await axios.post(
+            `${API_URL}/trip/stage`,
+            {
+              tripId,
+              stage: "invitation",
             },
-          }
-        );
-      } else {
-        setDisplayConfirmLeaveModal(true);
+            {
+              headers: {
+                authorization: token,
+              },
+            },
+          );
+        } else {
+          setDisplayConfirmLeaveModal(true);
+        }
       }
     } catch (err) {}
   };
@@ -195,7 +197,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {
       console.log(err);
@@ -218,7 +220,7 @@ const PlaceSelect = ({ route, navigation }: Props) => {
             headers: {
               authorization: token,
             },
-          }
+          },
         );
       }
     } catch (err) {

@@ -24,23 +24,35 @@ const PlanCard = ({
   token,
   day,
   date,
+  owner,
 }: {
   dailyPlan: PlaceCard[];
   tripId: string;
   token: string;
   day: number;
   date: string;
+  owner: boolean;
 }) => {
   const today = new Date();
 
   // ===================== function =====================
+
+  const compareTime = (a: string, b: string) => {};
+
   const handleChangeTime = async (
     type: string,
     id: string,
     event: DateTimePickerEvent,
-    date?: Date
+    date?: Date,
   ) => {
     try {
+      const timeTable = dailyPlan.map((dailyPlan) => [
+        dailyPlan.startTime,
+        dailyPlan.endTime,
+      ]);
+
+      console.log(timeTable);
+
       if (date) {
         const hours = date.getHours().toString().padStart(2, "0");
         const minutes = date.getMinutes().toString().padStart(2, "0");
@@ -49,7 +61,7 @@ const PlanCard = ({
         await axios.put(
           `${API_URL}/trip/planTime`,
           { tripId, id, type, time: formattedTime },
-          { headers: { Authorization: token } }
+          { headers: { Authorization: token } },
         );
       }
     } catch (err) {
@@ -68,7 +80,7 @@ const PlanCard = ({
             today.getMonth(),
             today.getDate(),
             hours,
-            minutes
+            minutes,
           );
     return dateWithTime;
   };
@@ -95,20 +107,18 @@ const PlanCard = ({
         </View>
       ) : (
         <View>
-          {dailyPlan.map((item) => {
+          {dailyPlan.map((item, index) => {
             return (
-              <View className="flex-row">
+              <View className="flex-row" key={item.id}>
                 {/* time select */}
                 <View className="w-[40px] mr-[8px] h-[100px] opacity-1  mt-[16px] ">
-                  <Pressable onPress={() => {}}>
-                    <Text
-                      className={`${
-                        item.startTime === "" ? "text-[#D9D9D9]" : ""
-                      } absolute text-[12px] leading-[18px] font-bold`}
-                    >
-                      {item.startTime === "" ? "00:00" : item.startTime}
-                    </Text>
-                  </Pressable>
+                  <Text
+                    className={`${
+                      item.startTime === "" ? "text-[#D9D9D9]" : ""
+                    } absolute text-[12px] leading-[18px] font-bold`}
+                  >
+                    {item.startTime === "" ? "00:00" : item.startTime}
+                  </Text>
                   <Text
                     className={`top-[20px] absolute text-[12px] leading-[18px] font-bold ${
                       item.startTime === "" || item.endTime === ""
@@ -125,27 +135,30 @@ const PlanCard = ({
                   >
                     {item.endTime === "" ? "00:00" : item.endTime}
                   </Text>
-                  <View className="opacity-0">
-                    <DateTimePicker
-                      value={formatTime(item.startTime)}
-                      mode="time"
-                      onChange={(event: DateTimePickerEvent, date?: Date) => {
-                        handleChangeTime("startTime", item.id, event, date);
-                      }}
-                    />
+                  {owner && (
+                    <View className="opacity-0">
+                      <DateTimePicker
+                        value={formatTime(item.startTime)}
+                        mode="time"
+                        onChange={(event: DateTimePickerEvent, date?: Date) => {
+                          handleChangeTime("startTime", item.id, event, date);
+                        }}
+                      />
 
-                    <DateTimePicker
-                      value={formatTime(item.endTime)}
-                      mode="time"
-                      onChange={(event: DateTimePickerEvent, date?: Date) => {
-                        handleChangeTime("endTime", item.id, event, date);
-                      }}
-                    />
-                  </View>
+                      <DateTimePicker
+                        value={formatTime(item.endTime)}
+                        mode="time"
+                        onChange={(event: DateTimePickerEvent, date?: Date) => {
+                          handleChangeTime("endTime", item.id, event, date);
+                        }}
+                      />
+                    </View>
+                  )}
                 </View>
                 {/* place and activity */}
                 {item?.type === "place" ? (
                   <PlanPlaceCard
+                    index={index}
                     key={item.id}
                     startTime={item.startTime}
                     endTime={item.endTime}
