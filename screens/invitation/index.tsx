@@ -23,8 +23,6 @@ import { AuthData } from "../../contexts/authContext";
 // ====================== svg ======================
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
-import FirstInvite from "../../assets/invitation/firstInvite.svg";
-import SecondInvite from "../../assets/invitation/inviteMoreThanOne.svg";
 import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
 
 // ====================== component ======================
@@ -38,7 +36,16 @@ import { CalendarRange, RangeDatepicker } from "@ui-kitten/components";
 // ====================== const ======================
 
 import { API_URL } from "@env";
-import { DISBANDGROUP, LEAVEGROUP, REMOVEFRIEND } from "../../utils/const";
+import {
+  DISBANDGROUP,
+  LEAVEGROUP,
+  LOADING,
+  REMOVEFRIEND,
+  SUCCESS,
+} from "../../utils/const";
+import Loading from "../Loading";
+import InviteButton from "../../components/invitation/inviteButton";
+import UrlModal from "../../components/invitation/urlModal";
 
 type Props = NativeStackScreenProps<StackParamList, "invitation">;
 
@@ -53,6 +60,7 @@ const Invitation = ({ route, navigation }: Props) => {
 
   // ====================== useState ======================
 
+  const [status, setStatus] = useState(LOADING);
   const [displayMember, setDisplayMember] = useState<MemberData[]>([]);
   const [ownerOfTrip, setOwnerOfTrip] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
@@ -87,7 +95,7 @@ const Invitation = ({ route, navigation }: Props) => {
         socket.disconnect();
         console.log("didnt focus");
       };
-    }, [tripId])
+    }, [tripId]),
   );
 
   useEffect(() => {
@@ -123,9 +131,9 @@ const Invitation = ({ route, navigation }: Props) => {
             } else {
               return member;
             }
-          })
+          }),
         );
-      }
+      },
     );
 
     socket.on("removeMember", (data: { userId: string }) => {
@@ -133,7 +141,7 @@ const Invitation = ({ route, navigation }: Props) => {
         navigation.navigate("tab");
       } else {
         setDisplayMember((displayMember) =>
-          displayMember.filter((member) => member.userId !== data.userId)
+          displayMember.filter((member) => member.userId !== data.userId),
         );
         if (confirmModal.userId === data.userId) {
           setConfirmModal({ display: false, name: "", type: "", userId: "" });
@@ -174,7 +182,7 @@ const Invitation = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
       setOwnerOfTrip(response.data.owner);
 
@@ -186,7 +194,7 @@ const Invitation = ({ route, navigation }: Props) => {
       } else {
         setDateRange({});
       }
-
+      setStatus(SUCCESS);
       setDisplayMember(response.data.data);
     } catch (err) {
       console.log({ error: err });
@@ -202,7 +210,7 @@ const Invitation = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
       const url = prefix + "inviteVerify/" + response.data.inviteLink;
       setInviteUrl(url);
@@ -293,22 +301,24 @@ const Invitation = ({ route, navigation }: Props) => {
 
   const onPressBack = async () => {
     try {
-      if (ownerOfTrip) {
-        // show modal disband group
-        setConfirmModal({
-          display: true,
-          name: "",
-          type: DISBANDGROUP,
-          userId: userId,
-        });
-      } else {
-        // show modal confirm leave
-        setConfirmModal({
-          display: true,
-          name: "",
-          type: LEAVEGROUP,
-          userId: userId,
-        });
+      if (status !== LOADING) {
+        if (ownerOfTrip) {
+          // show modal disband group
+          setConfirmModal({
+            display: true,
+            name: "",
+            type: DISBANDGROUP,
+            userId: userId,
+          });
+        } else {
+          // show modal confirm leave
+          setConfirmModal({
+            display: true,
+            name: "",
+            type: LEAVEGROUP,
+            userId: userId,
+          });
+        }
       }
     } catch (err) {}
   };
@@ -381,7 +391,7 @@ const Invitation = ({ route, navigation }: Props) => {
             headers: {
               authorization: token,
             },
-          }
+          },
         );
       }
 
@@ -417,7 +427,7 @@ const Invitation = ({ route, navigation }: Props) => {
             headers: {
               authorization: token,
             },
-          }
+          },
         );
       }
     } catch (err) {
@@ -450,7 +460,7 @@ const Invitation = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {}
   };
@@ -476,41 +486,36 @@ const Invitation = ({ route, navigation }: Props) => {
         </View>
 
         {/* content */}
-        <ScrollView className=" bg-[#EEEEEE] ">
+        {status === LOADING ? (
           <View
-            className="pb-[16px] px-[16px]  flex-col items-center"
-            style={{ paddingBottom: insets.bottom }}
+            className={`bg-[#F5F5F5] grow flex justify-center items-center`}
           >
-            {displayMember.map((data) => (
-              <UserCard
-                key={data.userId}
-                data={data}
-                ownerOfCard={data.userId === userId}
-                ownerOfTrip={ownerOfTrip}
-                setConfirmModal={setConfirmModal}
-                tripId={tripId}
-              />
-            ))}
-            {/* invite button */}
-            <Pressable onPress={getInvitationLink}>
-              {displayMember.length === 1 ? (
-                <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] bg-[#FFC502]">
-                  <FirstInvite />
-                  <Text className="ml-[8px] text-white font-bold text-[16px]">
-                    ชวนเพื่อน
-                  </Text>
-                </View>
-              ) : (
-                <View className="mt-[16px] h-[40px] rounded-[100px] flex-row justify-center items-center px-[16px] py-[6px] border bg-white border-[#FFC502]">
-                  <SecondInvite />
-                  <Text className="ml-[8px] text-[#FFC502] font-bold text-[16px]">
-                    เข้าร่วม {displayMember.length}/4 คน
-                  </Text>
-                </View>
-              )}
-            </Pressable>
+            <Loading />
           </View>
-        </ScrollView>
+        ) : (
+          <ScrollView className=" bg-[#EEEEEE] ">
+            <View
+              className="pb-[16px] px-[16px]  flex-col items-center"
+              style={{ paddingBottom: insets.bottom }}
+            >
+              {displayMember.map((data) => (
+                <UserCard
+                  key={data.userId}
+                  data={data}
+                  ownerOfCard={data.userId === userId}
+                  ownerOfTrip={ownerOfTrip}
+                  setConfirmModal={setConfirmModal}
+                  tripId={tripId}
+                />
+              ))}
+              {/* invite button */}
+              <InviteButton
+                getInvitationLink={getInvitationLink}
+                length={displayMember.length}
+              />
+            </View>
+          </ScrollView>
+        )}
         {/* footer */}
         <View
           style={{
@@ -583,21 +588,13 @@ const Invitation = ({ route, navigation }: Props) => {
             />
           )}
           {displayUrlModal && (
-            <View className="pt-[16px] bg-[#fff] rounded-lg w-[279px] px-[12px] flex-col items-center pb-[12px]">
-              {displayMember.length === 1 && (
-                <Text className="mb-[10px] text-[16px] font-bold">
-                  ชวนเพื่อนสำเร็จแล้ว
-                </Text>
-              )}
-              <Text className="text-[16px] mb-[28px]">{inviteUrl}</Text>
-              <ButtonCustom
-                title="OK"
-                width="w-[255px]"
-                onPress={() => {
-                  setDisplayUrlModal(false);
-                }}
-              />
-            </View>
+            <UrlModal
+              onPressConfirm={() => {
+                setDisplayUrlModal(false);
+              }}
+              inviteUrl={inviteUrl}
+              length={displayMember.length}
+            />
           )}
         </View>
       )}

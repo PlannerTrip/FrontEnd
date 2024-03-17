@@ -101,7 +101,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           console.log("didnt focus");
         };
       }
-    }, [tripId, isFocused])
+    }, [tripId, isFocused]),
   );
 
   // ====================== function ======================
@@ -141,7 +141,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
         setPlaces((places) =>
           places.reduce((result: Place[], current) => {
             current.selectBy = current.selectBy.filter(
-              (id) => id !== data.userId
+              (id) => id !== data.userId,
             );
 
             if (current.selectBy.length !== 0) {
@@ -149,7 +149,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
             }
 
             return result;
-          }, [])
+          }, []),
         );
         // scroll flatList to index 0
         if (flatList.current) {
@@ -160,31 +160,31 @@ const PlanSelect = ({ route, navigation }: Props) => {
             dailyPlan.place = dailyPlan.place.reduce(
               (resultPLace: PlanPlace[], currentPlace) => {
                 currentPlace.selectBy = currentPlace.selectBy.filter(
-                  (information) => information.userId !== data.userId
+                  (information) => information.userId !== data.userId,
                 );
                 if (currentPlace.selectBy.length !== 0) {
                   resultPLace.push(currentPlace);
                 }
                 return resultPLace;
               },
-              []
+              [],
             );
 
             dailyPlan.activity = dailyPlan.activity.reduce(
               (resultActivity: Activity[], currentActivity) => {
                 currentActivity.selectBy = currentActivity.selectBy.filter(
-                  (information) => information.userId !== data.userId
+                  (information) => information.userId !== data.userId,
                 );
                 if (currentActivity.selectBy.length !== 0) {
                   resultActivity.push(currentActivity);
                 }
                 return resultActivity;
               },
-              []
+              [],
             );
 
             return dailyPlan;
-          })
+          }),
         );
       }
     });
@@ -206,8 +206,8 @@ const PlanSelect = ({ route, navigation }: Props) => {
         plan.map((item) =>
           item.day === data.day
             ? { ...item, activity: [...item.activity, data.activity] }
-            : item
-        )
+            : item,
+        ),
       );
     });
 
@@ -218,14 +218,14 @@ const PlanSelect = ({ route, navigation }: Props) => {
             ? {
                 ...item,
                 place: item.place.filter(
-                  (place) => place.placePlanId !== data.id
+                  (place) => place.placePlanId !== data.id,
                 ),
                 activity: item.activity.filter(
-                  (activity) => activity.activityId !== data.id
+                  (activity) => activity.activityId !== data.id,
                 ),
               }
-            : item
-        )
+            : item,
+        ),
       );
     });
 
@@ -241,7 +241,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           location.latitude,
           location.longitude,
           data.latitude,
-          data.longitude
+          data.longitude,
         );
         setPlan((plan) =>
           plan.map((item) => {
@@ -252,29 +252,31 @@ const PlanSelect = ({ route, navigation }: Props) => {
               };
             }
             return item;
-          })
+          }),
         );
-      }
+      },
     );
   };
 
   const onPressBack = async () => {
     try {
-      if (owner) {
-        await axios.post(
-          `${API_URL}/trip/stage`,
-          {
-            tripId,
-            stage: "placeSelect",
-          },
-          {
-            headers: {
-              authorization: token,
+      if (status !== LOADING) {
+        if (owner) {
+          await axios.post(
+            `${API_URL}/trip/stage`,
+            {
+              tripId,
+              stage: "placeSelect",
             },
-          }
-        );
-      } else {
-        setDisplayConfirmLeaveModal(true);
+            {
+              headers: {
+                authorization: token,
+              },
+            },
+          );
+        } else {
+          setDisplayConfirmLeaveModal(true);
+        }
       }
     } catch (err) {}
   };
@@ -316,7 +318,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
   };
 
   const handlePanEnd = async (
-    e: GestureStateChangeEvent<PanGestureHandlerEventPayload>
+    e: GestureStateChangeEvent<PanGestureHandlerEventPayload>,
   ) => {
     try {
       // cal position when end
@@ -374,7 +376,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {
       console.log("error", err);
@@ -394,7 +396,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           headers: {
             Authorization: token,
           },
-        }
+        },
       );
       setConfirmModal({ date: "", day: 0, display: false });
       setActivityInput("");
@@ -426,7 +428,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {}
   };
@@ -489,12 +491,12 @@ const PlanSelect = ({ route, navigation }: Props) => {
               }}
               onScrollEndDrag={(event) => {
                 setScrollPosition(
-                  Math.max(event.nativeEvent.contentOffset.y, 0)
+                  Math.max(event.nativeEvent.contentOffset.y, 0),
                 );
               }}
               onMomentumScrollEnd={(event) => {
                 setScrollPosition(
-                  Math.max(event.nativeEvent.contentOffset.y, 0)
+                  Math.max(event.nativeEvent.contentOffset.y, 0),
                 );
               }}
             >

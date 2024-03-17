@@ -7,7 +7,9 @@ export interface TripSummaryInformation {
     name: string;
     note: string;
     member: Member[];
+    coverImg: string;
   };
+
   plan: Plan[];
   owner: boolean;
 }

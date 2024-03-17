@@ -1,11 +1,11 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import axios, { AxiosResponse } from "axios";
 import { Socket, io } from "socket.io-client";
 
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView, Image } from "react-native";
 import { StackParamList } from "../../interface/navigate";
 
 import { AuthData } from "../../contexts/authContext";
@@ -16,12 +16,14 @@ import { TextInput } from "react-native-gesture-handler";
 import Edit from "../../assets/tripSummary/edit.svg";
 import EditPlace from "../../assets/tripSummary/editPlace.svg";
 import Compass from "../../assets/tripSummary/compass.svg";
+import DefaultCoverImg from "../../assets/tripSummary/defaultCoverImg.svg";
 
 // ====================== interface ======================
 
 import { Place } from "../../interface/placeSelect";
 import {
   Member,
+  PlaceCard,
   Plan,
   TripSummaryInformation,
 } from "../../interface/tripSummary";
@@ -38,8 +40,11 @@ import MiniProfileCustom from "../../components/miniProfile";
 import { API_URL } from "@env";
 import { LOADING, SUCCESS } from "../../utils/const";
 
+import * as ImagePicker from "expo-image-picker";
+
 import { RangeDatepicker } from "@ui-kitten/components";
 import PlanCard from "../../components/tripSummary/planCard";
+import BackgroundModal from "../../components/backgroundModal";
 
 type Props = NativeStackScreenProps<StackParamList, "tripSummary">;
 
@@ -63,11 +68,15 @@ const TripSummary = ({ route, navigation }: Props) => {
 
   const [status, setStatus] = useState(LOADING);
   const [plan, setPlan] = useState<Plan[]>([]);
+  const [displayPlan, setDisplayPlan] = useState<
+    { day: number; date: string; dailyPlan: PlaceCard[] }[]
+  >([]);
 
   const [tripName, setTripName] = useState("");
   const [tripNote, setTripNote] = useState("");
   const [member, setMember] = useState<Member[]>([]);
   const [date, setDate] = useState({ start: "", end: "" });
+  const [coverImg, setCoverImg] = useState("");
 
   // ====================== useFocusEffect ======================
 
@@ -76,8 +85,7 @@ const TripSummary = ({ route, navigation }: Props) => {
       if (isFocused) {
         setStatus(LOADING);
         setMember([]);
-        // setOwner(false)
-        setOwner(true);
+        setOwner(false);
         const socket = io(`${API_URL}`, {
           transports: ["websocket"],
         });
@@ -89,8 +97,18 @@ const TripSummary = ({ route, navigation }: Props) => {
           console.log("didnt focus");
         };
       }
-    }, [tripId, isFocused])
+    }, [tripId, isFocused]),
   );
+
+  useEffect(() => {
+    setDisplayPlan(
+      plan.map((dailyPlan) => ({
+        day: dailyPlan.day,
+        date: dailyPlan.date,
+        dailyPlan: changeFormatToPlan(dailyPlan),
+      })),
+    );
+  }, [plan]);
 
   // ====================== function ======================
 
@@ -125,7 +143,6 @@ const TripSummary = ({ route, navigation }: Props) => {
                 } else {
                   place.endTime = data.time;
                 }
-                console.log(place);
               }
               return place;
             });
@@ -142,10 +159,14 @@ const TripSummary = ({ route, navigation }: Props) => {
             });
 
             return dailyPlan;
-          })
+          }),
         );
-      }
+      },
     );
+
+    socket.on("updateCoverImg", (data: { coverImg: string }) => {
+      setCoverImg(data.coverImg);
+    });
 
     socket.on("removeMember", (data: { userId: string }) => {
       if (userId === data.userId) {
@@ -157,6 +178,10 @@ const TripSummary = ({ route, navigation }: Props) => {
     socket.on("updateStage", (data: { stage: string }) => {
       if (data.stage === "planSelect") {
         navigation.navigate("planSelect", { tripId: tripId });
+      } else if (data.stage === "finish") {
+        navigation.navigate("tab");
+      } else if (data.stage === "placeSelect") {
+        navigation.navigate("placeSelect", { tripId: tripId });
       }
     });
   };
@@ -170,8 +195,10 @@ const TripSummary = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
+      setCoverImg(response.data.information.coverImg);
+      setOwner(response.data.owner);
       setTripName(response.data.information.name);
       setTripNote(response.data.information.note);
       setMember(response.data.information.member);
@@ -183,36 +210,33 @@ const TripSummary = ({ route, navigation }: Props) => {
     }
   };
 
+  // ----------------------- onPress -----------------------
+
   const onPressBack = async () => {
     try {
-      if (owner) {
-        await axios.post(
-          `${API_URL}/trip/stage`,
-          {
-            tripId,
-            stage: "planSelect",
-          },
-          {
-            headers: {
-              authorization: token,
+      if (status !== LOADING) {
+        if (owner) {
+          await axios.post(
+            `${API_URL}/trip/stage`,
+            {
+              tripId,
+              stage: "planSelect",
             },
-          }
-        );
-      } else {
-        setConfirmModal({
-          display: false,
-          title: <Text className="font-bold">คุณกำลังจะออกจากกลุ่ม</Text>,
-          confirmTitle: "ออก",
-        });
+            {
+              headers: {
+                authorization: token,
+              },
+            },
+          );
+        } else {
+          setConfirmModal({
+            display: true,
+            title: <Text className="font-bold">คุณกำลังจะออกจากกลุ่ม</Text>,
+            confirmTitle: "ออก",
+          });
+        }
       }
     } catch (err) {}
-  };
-
-  const onPressNextButton = async () => {
-    try {
-    } catch (err) {
-      console.log(err);
-    }
   };
 
   const onPressConfirmLeave = async () => {
@@ -229,6 +253,44 @@ const TripSummary = ({ route, navigation }: Props) => {
     }
   };
 
+  const onPressCreateTrip = async () => {
+    try {
+      await axios.put(
+        `${API_URL}/trip/createTrip`,
+        {
+          tripId,
+        },
+        { headers: { Authorization: token } },
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressEditPlace = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        {
+          tripId,
+          stage: "placeSelect",
+        },
+        {
+          headers: {
+            authorization: token,
+          },
+        },
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressEditFriend = () => {
+    navigation.navigate("tripMember", { tripId: tripId, member });
+  };
+  // ----------------------- onBlur -----------------------
+
   const onBlurTripName = async () => {
     try {
       await axios.put(
@@ -238,7 +300,7 @@ const TripSummary = ({ route, navigation }: Props) => {
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {
       console.log(err);
@@ -257,15 +319,29 @@ const TripSummary = ({ route, navigation }: Props) => {
           headers: {
             Authorization: token,
           },
-        }
+        },
       );
     } catch (err) {
       console.log(err);
     }
   };
 
+  const timeComparator = (a: string, b: string) => {
+    if (a === "") {
+      return 1;
+    }
+    const [hourA, minuteA] = a.split(":").map(Number);
+    const [hourB, minuteB] = b.split(":").map(Number);
+
+    if (hourA !== hourB) {
+      return hourA - hourB; // Sort by hour first
+    } else {
+      return minuteA - minuteB; // If hours are equal, sort by minute
+    }
+  };
+
   const changeFormatToPlan = (dailyPlan: Plan) => {
-    return [
+    const formatPlan = [
       ...dailyPlan.places.map((item) => ({
         id: item.placeId,
         startTime: item.startTime,
@@ -289,6 +365,49 @@ const TripSummary = ({ route, navigation }: Props) => {
         longitude: 0,
       })),
     ];
+
+    const sortPlan = formatPlan.sort((dailyPlanA, dailyPlanB) => {
+      return timeComparator(dailyPlanA.startTime, dailyPlanB.startTime);
+    });
+
+    return sortPlan;
+  };
+
+  const pickImage = async () => {
+    try {
+      if (owner) {
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          aspect: [2, 3],
+          quality: 1,
+        });
+
+        const formData = new FormData();
+
+        if (!result.canceled) {
+          setCoverImg(result.assets[0].uri);
+          formData.append("coverImg", {
+            uri: result.assets[0].uri,
+            name: `image.jpg`,
+            type: "image/jpeg",
+          });
+          formData.append("tripId", tripId);
+          const response = await axios.put(
+            `${API_URL}/trip/coverImg`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                authorization: token,
+              },
+            },
+          );
+        }
+      }
+    } catch (err) {
+      console.log(`upload error : ${err}`);
+    }
   };
 
   return (
@@ -316,11 +435,24 @@ const TripSummary = ({ route, navigation }: Props) => {
               <View className="w-[358px] p-[16px] bg-white flex-col">
                 <TextTitle title="รูปปกทริป" />
                 {/* trip img */}
-                <View className="h-[200px] w-[326px] bg-[#ECECEC] mb-[16px] mt-[8px]"></View>
+                <Pressable onPress={pickImage}>
+                  <View className="h-[200px] w-[326px] bg-[#ECECEC] mb-[16px] mt-[8px] flex justify-center items-center overflow-hidden">
+                    {coverImg === "" ? (
+                      <DefaultCoverImg />
+                    ) : (
+                      <Image
+                        source={{ uri: coverImg }}
+                        style={{ width: 326, height: 200 }}
+                      />
+                    )}
+                  </View>
+                </Pressable>
                 {/* trip name */}
                 <TextTitle title="ชื่อทริป" />
 
                 <TextInput
+                  editable={owner}
+                  selectTextOnFocus={owner}
                   onBlur={onBlurTripName}
                   onChangeText={setTripName}
                   value={tripName}
@@ -340,6 +472,8 @@ const TripSummary = ({ route, navigation }: Props) => {
                 />
                 <TextTitle title="บันทึกเพิ่มเติม" />
                 <TextInput
+                  editable={owner}
+                  selectTextOnFocus={owner}
                   onBlur={onBlurTripNote}
                   onChangeText={setTripNote}
                   value={tripNote}
@@ -351,7 +485,11 @@ const TripSummary = ({ route, navigation }: Props) => {
 
                 <View className="flex-row items-center">
                   <TextTitle title="สมาชิก" />
-                  <Edit />
+                  {owner && (
+                    <Pressable onPress={onPressEditFriend}>
+                      <Edit />
+                    </Pressable>
+                  )}
                 </View>
                 {/* mini profile  */}
                 <View className="flex-row flex-wrap ]">
@@ -364,30 +502,32 @@ const TripSummary = ({ route, navigation }: Props) => {
                     </View>
                   ))}
                 </View>
-
-                <View className="mt-[16px] flex-row">
-                  <Pressable>
-                    <View className="w-[110px] h-[32px] border-[2px] border-[#FFC502] rounded-full px-[12px] flex-row items-center justify-between">
-                      <EditPlace />
-                      <Text className="text-[12px] text-[#FFC502] font-bold">
-                        แก้ไขสถานที่
-                      </Text>
-                    </View>
-                  </Pressable>
-                  <Pressable>
-                    <View className="ml-[36px] w-[180px] h-[32px]  bg-[#FFC502] rounded-full px-[12px] flex-row items-center justify-between">
-                      <Compass />
-                      <Text className="text-[12px] text-white font-bold">
-                        หาจุดแวะเที่ยวระหว่างทาง
-                      </Text>
-                    </View>
-                  </Pressable>
-                </View>
+                {owner && (
+                  <View className="mt-[16px] flex-row">
+                    <Pressable onPress={onPressEditPlace}>
+                      <View className="w-[110px] h-[32px] border-[2px] border-[#FFC502] rounded-full px-[12px] flex-row items-center justify-between">
+                        <EditPlace />
+                        <Text className="text-[12px] text-[#FFC502] font-bold">
+                          แก้ไขสถานที่
+                        </Text>
+                      </View>
+                    </Pressable>
+                    <Pressable>
+                      <View className="ml-[36px] w-[180px] h-[32px]  bg-[#FFC502] rounded-full px-[12px] flex-row items-center justify-between">
+                        <Compass />
+                        <Text className="text-[12px] text-white font-bold">
+                          หาจุดแวะเที่ยวระหว่างทาง
+                        </Text>
+                      </View>
+                    </Pressable>
+                  </View>
+                )}
               </View>
               {/* plan */}
-              {plan.map((dailyPlan) => (
+              {displayPlan.map((dailyPlan) => (
                 <PlanCard
-                  dailyPlan={changeFormatToPlan(dailyPlan)}
+                  owner={owner}
+                  dailyPlan={dailyPlan.dailyPlan}
                   tripId={tripId}
                   token={token}
                   date={dailyPlan.date}
@@ -413,7 +553,7 @@ const TripSummary = ({ route, navigation }: Props) => {
               <ButtonCustom
                 width="w-[351px]"
                 title="สร้างทริป"
-                onPress={onPressNextButton}
+                onPress={onPressCreateTrip}
               />
             </View>
           </View>
@@ -421,7 +561,7 @@ const TripSummary = ({ route, navigation }: Props) => {
       </View>
 
       {confirmModal.display && (
-        <View className="absolute bg-[#0000008C] w-[100%] h-[100%] flex-col justify-center items-center ">
+        <BackgroundModal>
           {/* delete trip */}
           <ConfirmModal
             title={confirmModal.title}
@@ -435,7 +575,7 @@ const TripSummary = ({ route, navigation }: Props) => {
             }}
             onPressConfirm={onPressConfirmLeave}
           />
-        </View>
+        </BackgroundModal>
       )}
     </>
   );
