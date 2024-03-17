@@ -44,7 +44,7 @@ import * as ImagePicker from "expo-image-picker";
 
 import { RangeDatepicker } from "@ui-kitten/components";
 import PlanCard from "../../components/tripSummary/planCard";
-import BackgroundModal from "../../components/backGroundModal";
+import BackgroundModal from "../../components/backgroundModal";
 
 type Props = NativeStackScreenProps<StackParamList, "tripSummary">;
 

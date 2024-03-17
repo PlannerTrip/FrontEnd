@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState } from "react";
-import { View,ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
@@ -10,13 +10,11 @@ import { MemberData } from "../../interface/invitation";
 
 import { AuthData } from "../../contexts/authContext";
 
-
 import Header from "../../components/tripCreate/Header";
 import MemberCard from "../../components/tripMember/memberCard";
 import InviteButton from "../../components/invitation/inviteButton";
-import BackgroundModal from "../../components/backGroundModal";
+import BackgroundModal from "../../components/backgroundModal";
 import UrlModal from "../../components/invitation/urlModal";
-
 
 import axios, { AxiosResponse } from "axios";
 
