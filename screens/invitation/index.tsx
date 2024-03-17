@@ -226,7 +226,7 @@ const Invitation = ({ route, navigation }: Props) => {
     if (confirmModal.type === REMOVEFRIEND) {
       return (
         <Text className="text-[16px] font-bold leading-[24px]">
-          ลบ "${confirmModal.name}" ออกจากกลุ่ม
+          ลบ "{confirmModal.name}" ออกจากกลุ่ม
         </Text>
       );
     } else if (confirmModal.type === LEAVEGROUP) {

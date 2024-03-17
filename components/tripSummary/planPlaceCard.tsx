@@ -2,7 +2,7 @@ import { Text, Image, View } from "react-native";
 import TextTitle from "../tripCreate/TextTitle";
 
 const PlanPlaceCard = ({
-  index,
+  firstPlace,
   startTime,
   endTime,
   name,
@@ -10,7 +10,7 @@ const PlanPlaceCard = ({
   location,
   coverImg,
 }: {
-  index: number;
+  firstPlace: boolean;
   startTime: string;
   endTime: string;
   distance: number;
@@ -37,7 +37,7 @@ const PlanPlaceCard = ({
         {/* distant */}
         <View className="flex-row mt-[4px] items-center ">
           <Text className="text-[#FFC502] text-[12px] font-bold leading-[18px]">
-            {index === 0
+            {firstPlace
               ? `จุดเริ่มต้น`
               : `ห่างจากจุดที่แล้ว ${distance.toFixed(2)} กม.`}
           </Text>

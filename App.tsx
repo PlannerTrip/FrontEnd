@@ -20,6 +20,10 @@ import WriteReview from "./screens/writeReview";
 import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
 import WriteBlog from "./screens/writeBlog";
+import TripMember from "./screens/tripMember";
+import StopSelect from "./screens/stopSelect";
+import PlanSelect from "./screens/planSelect";
+import TripSummary from "./screens/tripSummary";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -40,14 +44,11 @@ import {
   Layout,
 } from "@ui-kitten/components";
 
-import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import TripSummary from "./screens/tripSummary";
 
 import { EvaIconsPack } from "@ui-kitten/eva-icons";
 import { default as mapping } from "./mapping.json"; // <-- import mapping
 import { default as theme } from "./theme.json"; // <-- import mapping
-import TripMember from "./screens/tripMember";
 
 const prefix = Linking.createURL("/");
 
@@ -166,6 +167,7 @@ export default function App() {
                   <Stack.Screen name="writeBlog" component={WriteBlog} />
                   <Stack.Screen name="tripSummary" component={TripSummary} />
                   <Stack.Screen name="tripMember" component={TripMember} />
+                  <Stack.Screen name="stopSelect" component={StopSelect} />
                 </>
               ) : (
                 <>

@@ -21,30 +21,34 @@ export interface Member {
 }
 
 export interface Plan {
-  places: {
-    startTime: string;
-    endTime: string;
-    placeName: string;
-    covetImg: string[];
-    location: {
-      address: string;
-      district: string;
-      province: string;
-    };
-    selectBy: string[];
-    latitude: number;
-    longitude: number;
-    placeId: string;
-  }[];
+  places: PlanPlace[];
   day: number;
   date: string;
-  activity: {
-    name: string;
-    startTime: string;
-    endTime: string;
-    activityId: string;
-    selectBy: string[];
-  }[];
+  activity: PlanActivity[];
+}
+
+export interface PlanActivity {
+  name: string;
+  startTime: string;
+  endTime: string;
+  activityId: string;
+  selectBy: string[];
+}
+
+export interface PlanPlace {
+  startTime: string;
+  endTime: string;
+  placeName: string;
+  covetImg: string[];
+  location: {
+    address: string;
+    district: string;
+    province: string;
+  };
+  selectBy: string[];
+  latitude: number;
+  longitude: number;
+  placeId: string;
 }
 
 export interface PlaceCard {
@@ -61,4 +65,6 @@ export interface PlaceCard {
   };
   latitude: number;
   longitude: number;
+  distant: number;
+  firstPlace: boolean;
 }

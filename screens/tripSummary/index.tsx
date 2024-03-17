@@ -20,11 +20,12 @@ import DefaultCoverImg from "../../assets/tripSummary/defaultCoverImg.svg";
 
 // ====================== interface ======================
 
-import { Place } from "../../interface/placeSelect";
 import {
   Member,
   PlaceCard,
   Plan,
+  PlanActivity,
+  PlanPlace,
   TripSummaryInformation,
 } from "../../interface/tripSummary";
 
@@ -45,6 +46,10 @@ import * as ImagePicker from "expo-image-picker";
 import { RangeDatepicker } from "@ui-kitten/components";
 import PlanCard from "../../components/tripSummary/planCard";
 import BackgroundModal from "../../components/backgroundModal";
+import Modal from "../../components/modal";
+import { MemberData } from "../../interface/invitation";
+import DaySelectModal from "../../components/tripSummary/daySelectModal";
+import { distanceTwoPoint } from "../../utils/function";
 
 type Props = NativeStackScreenProps<StackParamList, "tripSummary">;
 
@@ -65,6 +70,8 @@ const TripSummary = ({ route, navigation }: Props) => {
     title: <></>,
     confirmTitle: "",
   });
+  const [displaySuccessModal, setDisplaySuccessModal] = useState(false);
+  const [displayDaySelectModal, setDisplayDaySelectModal] = useState(false);
 
   const [status, setStatus] = useState(LOADING);
   const [plan, setPlan] = useState<Plan[]>([]);
@@ -83,9 +90,7 @@ const TripSummary = ({ route, navigation }: Props) => {
   useFocusEffect(
     useCallback(() => {
       if (isFocused) {
-        setStatus(LOADING);
-        setMember([]);
-        setOwner(false);
+        init();
         const socket = io(`${API_URL}`, {
           transports: ["websocket"],
         });
@@ -100,6 +105,7 @@ const TripSummary = ({ route, navigation }: Props) => {
     }, [tripId, isFocused]),
   );
 
+  // update displayPlan when plan change
   useEffect(() => {
     setDisplayPlan(
       plan.map((dailyPlan) => ({
@@ -111,6 +117,20 @@ const TripSummary = ({ route, navigation }: Props) => {
   }, [plan]);
 
   // ====================== function ======================
+
+  const init = () => {
+    setDisplaySuccessModal(false);
+    setStatus(LOADING);
+    setPlan([]);
+    setDisplayPlan([]);
+    setMember([]);
+    setTripName("");
+    setTripNote("");
+    setMember([]);
+    setCoverImg("");
+    setDate({ start: "", end: "" });
+    setOwner(false);
+  };
 
   const handleSocket = (socket: Socket) => {
     socket.on("connect", () => {
@@ -168,17 +188,64 @@ const TripSummary = ({ route, navigation }: Props) => {
       setCoverImg(data.coverImg);
     });
 
+    socket.on("addMember", (data: { data: MemberData }) => {
+      console.log(data.data);
+      setMember((member) => [
+        ...member,
+        {
+          userId: data.data.userId,
+          username: data.data.username,
+          userprofile: data.data.profileUrl,
+        },
+      ]);
+    });
+
     socket.on("removeMember", (data: { userId: string }) => {
       if (userId === data.userId) {
         navigation.navigate("tab");
       } else {
+        setMember((member) =>
+          member.filter((user) => user.userId !== data.userId),
+        );
+
+        setPlan((plan) =>
+          plan.map((dailyPlan) => {
+            dailyPlan.places = dailyPlan.places.reduce(
+              (resultPLace: PlanPlace[], currentPlace) => {
+                currentPlace.selectBy = currentPlace.selectBy.filter(
+                  (id) => id !== data.userId,
+                );
+                if (currentPlace.selectBy.length !== 0) {
+                  resultPLace.push(currentPlace);
+                }
+                return resultPLace;
+              },
+              [],
+            );
+
+            dailyPlan.activity = dailyPlan.activity.reduce(
+              (resultActivity: PlanActivity[], currentActivity) => {
+                currentActivity.selectBy = currentActivity.selectBy.filter(
+                  (id) => id !== data.userId,
+                );
+                if (currentActivity.selectBy.length !== 0) {
+                  resultActivity.push(currentActivity);
+                }
+                return resultActivity;
+              },
+              [],
+            );
+
+            return dailyPlan;
+          }),
+        );
       }
     });
 
     socket.on("updateStage", (data: { stage: string }) => {
       if (data.stage === "planSelect") {
         navigation.navigate("planSelect", { tripId: tripId });
-      } else if (data.stage === "finish") {
+      } else if (data.stage === "finish" && !owner) {
         navigation.navigate("tab");
       } else if (data.stage === "placeSelect") {
         navigation.navigate("placeSelect", { tripId: tripId });
@@ -262,6 +329,7 @@ const TripSummary = ({ route, navigation }: Props) => {
         },
         { headers: { Authorization: token } },
       );
+      setDisplaySuccessModal(true);
     } catch (err) {
       console.log(err);
     }
@@ -289,6 +357,17 @@ const TripSummary = ({ route, navigation }: Props) => {
   const onPressEditFriend = () => {
     navigation.navigate("tripMember", { tripId: tripId, member });
   };
+
+  const onPressFindWaypoint = () => {
+    setDisplayDaySelectModal(true);
+  };
+
+  const onPressModalDateSelect = (day: number) => {
+    // sent socket
+
+    navigation.navigate("stopSelect", { tripId: tripId, day: day });
+  };
+
   // ----------------------- onBlur -----------------------
 
   const onBlurTripName = async () => {
@@ -370,7 +449,45 @@ const TripSummary = ({ route, navigation }: Props) => {
       return timeComparator(dailyPlanA.startTime, dailyPlanB.startTime);
     });
 
-    return sortPlan;
+    let firstPlace = true;
+    let currentPosition = { latitude: 0, longitude: 0 };
+
+    const addFirstPlace = sortPlan.map((current) => {
+      if (current.type === "place" && firstPlace) {
+        firstPlace = false;
+        currentPosition = {
+          latitude: current.latitude,
+          longitude: current.longitude,
+        };
+        return { ...current, firstPlace: true };
+      }
+      return { ...current, firstPlace: false };
+    });
+
+    // add distant from prevPlace
+    const sortPlanAddDistant = addFirstPlace.map((dailyPlan, index) => {
+      let distant = -1;
+      if (dailyPlan.type === "activity") {
+        return { ...dailyPlan, distant: 0 };
+      }
+
+      if (index !== 0) {
+        distant = distanceTwoPoint(
+          currentPosition.latitude,
+          currentPosition.longitude,
+          dailyPlan.latitude,
+          dailyPlan.longitude,
+        );
+      }
+
+      currentPosition = {
+        latitude: dailyPlan.latitude,
+        longitude: dailyPlan.longitude,
+      };
+      return { ...dailyPlan, distant: distant };
+    });
+
+    return sortPlanAddDistant;
   };
 
   const pickImage = async () => {
@@ -512,7 +629,7 @@ const TripSummary = ({ route, navigation }: Props) => {
                         </Text>
                       </View>
                     </Pressable>
-                    <Pressable>
+                    <Pressable onPress={onPressFindWaypoint}>
                       <View className="ml-[36px] w-[180px] h-[32px]  bg-[#FFC502] rounded-full px-[12px] flex-row items-center justify-between">
                         <Compass />
                         <Text className="text-[12px] text-white font-bold">
@@ -560,6 +677,7 @@ const TripSummary = ({ route, navigation }: Props) => {
         )}
       </View>
 
+      {/*  modal */}
       {confirmModal.display && (
         <BackgroundModal>
           {/* delete trip */}
@@ -574,6 +692,35 @@ const TripSummary = ({ route, navigation }: Props) => {
               });
             }}
             onPressConfirm={onPressConfirmLeave}
+          />
+        </BackgroundModal>
+      )}
+      {displaySuccessModal && (
+        <BackgroundModal>
+          <Modal
+            icon="checkCircle"
+            buttonTitle="ปิด"
+            title="สร้างทริปสำเร็จ"
+            onPress={() => {
+              navigation.navigate("tab");
+            }}
+          />
+        </BackgroundModal>
+      )}
+      {displayDaySelectModal && (
+        <BackgroundModal>
+          <DaySelectModal
+            dayList={plan.map((dailyPlan) => ({
+              day: dailyPlan.day,
+              date: dailyPlan.date,
+              disable: dailyPlan.places.length < 2,
+            }))}
+            onClickClose={() => {
+              setDisplayDaySelectModal(false);
+            }}
+            onPressModalDateSelect={(day: number) => {
+              onPressModalDateSelect(day);
+            }}
           />
         </BackgroundModal>
       )}

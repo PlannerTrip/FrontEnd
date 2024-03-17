@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 
 import { PlaceCard, Plan } from "../../interface/tripSummary";
@@ -224,12 +224,12 @@ const PlanCard = ({
                 {/* place and activity */}
                 {item?.type === "place" ? (
                   <PlanPlaceCard
-                    index={index}
+                    firstPlace={item.firstPlace}
                     key={item.id}
                     startTime={item.startTime}
                     endTime={item.endTime}
                     name={item.name}
-                    distance={0}
+                    distance={item.distant}
                     location={item.location}
                     coverImg={item.coverImg}
                   />
