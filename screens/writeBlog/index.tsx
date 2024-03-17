@@ -63,7 +63,10 @@ const WriteBlog = ({ navigation, route }: Props) => {
     const [content, setContent] = useState("");
     const [title, setTitle] = useState("");
     const [images, setImages] = useState<string[]>([]);
-    const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
+    const [dateRange, setDateRange] = useState<CalendarRange<Date>>({
+        startDate: new Date(),
+        endDate: new Date(),
+    });
     const [selectedTrip, setSelectedTrip] = useState("");
     const [selectedPlaces, setSelectedPlaces] = useState<PlaceOption[]>([]);
 
@@ -91,16 +94,30 @@ const WriteBlog = ({ navigation, route }: Props) => {
 
             const formData = new FormData();
 
-            // formData.append("content", content);
-            // formData.append("placeId", placeId);
+            // title
+            // date
 
-            // for (let i = 0; i < images.length; i++) {
-            //     formData.append("files", {
-            //         uri: images[i],
-            //         name: `image${i}.jpg`,
-            //         type: "image/jpeg",
-            //     });
-            // }
+            formData.append("name", title);
+
+            formData.append("note", content);
+
+            formData.append("startDate", dateRange.startDate.toDateString());
+
+            formData.append("endDate", dateRange.endDate.toDateString());
+
+            formData.append("tripIdReference", selectedTrip);
+
+            selectedPlaces.map((place) =>
+                formData.append("placeId", place.placeId)
+            );
+
+            for (let i = 0; i < images.length; i++) {
+                formData.append("files", {
+                    uri: images[i],
+                    name: `image${i}.jpg`,
+                    type: "image/jpeg",
+                });
+            }
 
             const response = await axios.post(`${API_URL}/blog`, formData, {
                 headers: {
@@ -152,73 +169,6 @@ const WriteBlog = ({ navigation, route }: Props) => {
     const [loadingTrip, setLoadingTrip] = useState(false);
     const [loadingPlace, setLoadingPlace] = useState(false);
 
-    const mock = [
-        {
-            coverImg:
-                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/Thumbnail/P03002579.jpg",
-            location: { district: "พระนคร", province: "กรุงเทพมหานคร" },
-            placeId: "P03002579",
-            placeName: "พระบรมมหาราชวัง",
-        },
-        {
-            coverImg:
-                "https://tatapi.tourismthailand.org/tatfs/Image/CustomPOI/Thumbnail/P03006845.jpeg",
-            location: { district: "บางกอกใหญ่", province: "กรุงเทพมหานคร" },
-            placeId: "P03006845",
-            placeName: "พระปรางค์วัดอรุณราชวรารามราชวรมหาวิหาร",
-        },
-        {
-            coverImg:
-                "https://tatapi.tourismthailand.org/tatfs/Image/CustomPOI/Thumbnail/P02000012.jpeg",
-            location: { district: "ดินแดง", province: "กรุงเทพมหานคร" },
-            placeId: "P02000012",
-            placeName: "โรงแรมเจ้าพระยาปาร์ค",
-        },
-        {
-            coverImg:
-                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/Thumbnail/P08023248.jpg",
-            location: { district: "บางขุนเทียน", province: "กรุงเทพมหานคร" },
-            placeId: "P08023248",
-            placeName: "63 ริช ชุงมัน พระราม 2",
-        },
-        {
-            coverImg:
-                "https://tatapi.tourismthailand.org/tatfs/Image/custompoi/Thumbnail/P13024171.jpg",
-            location: { district: "บางขุนเทียน", province: "กรุงเทพมหานคร" },
-            placeId: "P13024171",
-            placeName: "กราเนด้า คลินิกเวชกรรม สาขา เซ็นทรัลพระราม 2",
-        },
-        {
-            coverImg: "",
-            location: { district: "ธนบุรี", province: "กรุงเทพมหานคร" },
-            placeId: "P13024304",
-            placeName: "กราเนด้า คลินิกเวชกรรม สาขา เดอะมอลล์ ท่าพระ",
-        },
-        {
-            coverImg: "",
-            location: { district: "ปากเกร็ด", province: "นนทบุรี" },
-            placeId: "P06000014",
-            placeName: "กลุ่มแม่บ้านเกษตรกรคลองพระอุดม",
-        },
-        {
-            coverImg: "",
-            location: { district: "บ้านนาเดิม", province: "สุราษฎร์ธานี" },
-            placeId: "P08008824",
-            placeName: "ก๋วยเตี๋ยวเจ้าพระยา",
-        },
-        {
-            coverImg: "",
-            location: { district: "ลาดพร้าว", province: "กรุงเทพมหานคร" },
-            placeId: "P08004771",
-            placeName: "ก๋วยเตี๋ยวหมูเมืองพระรถ",
-        },
-        {
-            coverImg: "",
-            location: { district: "เมืองจันทบุรี", province: "จันทบุรี" },
-            placeId: "P08001007",
-            placeName: "ก๋วยเตี๋ยวหมูเลียงพระยาตรัง",
-        },
-    ];
     // blogSearch
     useFocusEffect(
         useCallback(() => {
