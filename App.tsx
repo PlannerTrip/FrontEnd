@@ -53,7 +53,6 @@ const prefix = Linking.createURL("/");
 
 export default function App() {
   console.log(prefix);
-
   // =================== deepLink ===================
   const config = {
     screens: {
@@ -150,10 +149,6 @@ export default function App() {
                 <Stack.Screen name="loading" component={Loading} />
               ) : isSignedIn ? (
                 <>
-                <Stack.Screen
-                                        name="writeBlog"
-                                        component={WriteBlog}
-                                    />
                   <Stack.Screen name="tab" component={Tab} />
                   <Stack.Screen name="invitation" component={Invitation} />
                   <Stack.Screen name="placeSelect" component={PlaceSelect} />
