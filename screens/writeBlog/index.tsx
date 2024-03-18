@@ -22,7 +22,7 @@ import * as SecureStore from "expo-secure-store";
 
 import { API_URL } from "@env";
 
-import axios, { Axios } from "axios";
+import axios, { Axios, all } from "axios";
 // =============== svg ===============
 import ArrowLeft from "../../assets/ArrowLeft.svg";
 import DeleteImage from "../../assets/DeleteImage.svg";
@@ -43,9 +43,10 @@ import {
 } from "@ui-kitten/components";
 
 import AutoCompleteCustom from "../../components/autoComplete";
-import { PlaceOption } from "../../interface/blog";
+import { Option, PlaceOption, TripOption } from "../../interface/blog";
 import CoverImage from "../../assets/blog/defaultCoverImage.svg";
 import Close from "../../assets/blog/close.svg";
+import SelectCustom from "../../components/select";
 
 type Props = NativeStackScreenProps<StackParamList, "writeBlog">;
 
@@ -63,12 +64,24 @@ const WriteBlog = ({ navigation, route }: Props) => {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<CalendarRange<Date>>({
-    // startDate: new Date(),
-    // endDate: new Date(),
-  });
+  const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
   const [selectedTrip, setSelectedTrip] = useState("");
-  const [selectedPlaces, setSelectedPlaces] = useState<PlaceOption[]>([]);
+  const [selectedPlaces, setSelectedPlaces] = useState<Option[]>([]);
+
+  const [allTrip, setAllTrip] = useState([
+    {
+      name: "",
+      places: [
+        {
+          coverImg: "",
+          location: { district: "", province: "" },
+          placeId: "",
+          placeName: "",
+        },
+      ],
+      tripId: "",
+    },
+  ]);
 
   const [disableButton, setDisableButton] = useState(true);
   const [loadingButton, setLoadingButton] = useState(false);
@@ -141,21 +154,16 @@ const WriteBlog = ({ navigation, route }: Props) => {
         headers: {
           authorization: result,
         },
-        // params: {
-        //   placeId: placeId,
-        //   type: type,
-        //   forecastDate: forecastDate,
-        //   forecastDuration: forecastDuration,
-        // },
       });
 
-      console.log(response.data);
+      setAllTrip(response.data);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         console.log(error.response.data);
       }
     }
   };
+
   // =============== image ===============
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -180,13 +188,11 @@ const WriteBlog = ({ navigation, route }: Props) => {
     setDateRange({ startDate: range.startDate, endDate: range.endDate });
   };
 
-  const [optionsTrip, setOptionsTrip] = useState([]);
-  const [optionsPlace, setOptionsPlace] = useState<PlaceOption[]>([]);
+  const [optionsTrip, setOptionsTrip] = useState<Option[]>([]);
+  const [optionsPlace, setOptionsPlace] = useState<Option[]>([]);
 
-  const [searchTrip, setSearchTrip] = useState("");
   const [searchPlace, setSearchPlace] = useState("");
 
-  const [loadingTrip, setLoadingTrip] = useState(false);
   const [loadingPlace, setLoadingPlace] = useState(false);
 
   // blogSearch
@@ -195,7 +201,6 @@ const WriteBlog = ({ navigation, route }: Props) => {
       const abortController = new AbortController();
       const signal = abortController.signal;
 
-      console.log("text", searchPlace);
       if (searchPlace.length >= 2) {
         (async () => {
           setLoadingPlace(true);
@@ -231,7 +236,18 @@ const WriteBlog = ({ navigation, route }: Props) => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log("selectedTrip", selectedTrip);
+      const places = allTrip.find((trip) => trip.name === selectedTrip)?.places;
+
+      if (places) {
+        places.forEach((place) => {
+          setSelectedPlaces((prev) => {
+            if (!prev.some((p) => p.placeId === place.placeId)) {
+              return [...prev, place];
+            }
+            return prev;
+          });
+        });
+      }
     }, [selectedTrip]),
   );
 
@@ -245,6 +261,14 @@ const WriteBlog = ({ navigation, route }: Props) => {
     useCallback(() => {
       getUserTripName();
     }, []),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const tripNames = allTrip.map((trip) => ({ tripName: trip.name }));
+
+      setOptionsTrip(tripNames);
+    }, [allTrip]),
   );
 
   return (
@@ -372,14 +396,11 @@ const WriteBlog = ({ navigation, route }: Props) => {
             </Text>
 
             {/* Trip */}
-            <AutoCompleteCustom
+            <SelectCustom
               selected={selectedTrip}
               setSelected={setSelectedTrip}
               placeholder="เลือกทริปการท่องเที่ยว"
               options={optionsTrip}
-              search={searchTrip}
-              setSearch={setSearchTrip}
-              loading={loadingTrip}
             />
 
             <Text className="text-[16px] font-bold mt-[16px] mb-[8px]">
