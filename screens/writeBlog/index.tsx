@@ -246,9 +246,6 @@ const WriteBlog = ({ navigation }: Props) => {
     )?.places;
 
     const currentPlace = allTrip.find((trip) => trip.name === tripName)?.places;
-    const updatedCurrentPlace = currentPlace?.map((trip) => {
-      return { ...trip, inTrip: true };
-    });
 
     setSelectedPlaces((prev) => {
       let updatedSelectedPlaces = [...prev];
@@ -257,20 +254,23 @@ const WriteBlog = ({ navigation }: Props) => {
       if (previousPlace) {
         updatedSelectedPlaces = updatedSelectedPlaces.filter((place) =>
           previousPlace.every(
-            (prevPlace) => prevPlace.placeId !== place.placeId,
+            (prevPlace) =>
+              prevPlace.placeId !== place.placeId || place.inTrip === false,
           ),
         );
       }
 
       // Add places from currentPlace to updatedSelectedPlaces if they don't already exist
-      if (updatedCurrentPlace) {
+      if (currentPlace) {
         updatedSelectedPlaces = [
           ...updatedSelectedPlaces,
-          ...updatedCurrentPlace.filter((place) =>
-            updatedSelectedPlaces.every(
-              (selectedPlace) => selectedPlace.placeId !== place.placeId,
-            ),
-          ),
+          ...currentPlace
+            .filter((place) =>
+              updatedSelectedPlaces.every(
+                (selectedPlace) => selectedPlace.placeId !== place.placeId,
+              ),
+            )
+            .map((place) => ({ ...place, inTrip: true })), // Add inTrip: true to each place
         ];
       }
 
