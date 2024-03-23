@@ -7,8 +7,11 @@ import {
   Dimensions,
 } from "react-native";
 import React, { useState } from "react";
+
+// =============== components ===============
 import { Icon } from "@ui-kitten/components";
 
+// =============== svg ===============
 import Add from "../assets/autoComplete/add.svg";
 import Check from "../assets/autoComplete/check.svg";
 import Empty from "../assets/autoComplete/empty.svg";

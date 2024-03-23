@@ -6,20 +6,21 @@ import {
   FlatList,
   ScrollView,
   Dimensions,
-  Keyboard,
 } from "react-native";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
+// =============== svg ===============
 import Add from "../assets/autoComplete/add.svg";
 import Check from "../assets/autoComplete/check.svg";
 import Empty from "../assets/autoComplete/empty.svg";
 import Search from "../assets/autoComplete/search.svg";
 
+// =============== components ===============
 import { Icon } from "@ui-kitten/components";
-import { useFocusEffect } from "@react-navigation/native";
-import { Option, PlaceOption } from "../interface/blog";
 import LoadingCustom from "./loading";
-import { PlacementOptions } from "@ui-kitten/components/ui/popover/type";
+
+// =============== type ===============
+import { Option } from "../interface/blog";
 
 const AutoCompleteCustom = ({
   placeholder,
@@ -53,7 +54,11 @@ const AutoCompleteCustom = ({
     }
     if (options.length) {
       return (
-        <ScrollView horizontal={true} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          horizontal={true}
+          keyboardShouldPersistTaps="handled"
+          // automaticallyAdjustKeyboardInsets={true}
+        >
           <FlatList
             bounces={false}
             horizontal={false}

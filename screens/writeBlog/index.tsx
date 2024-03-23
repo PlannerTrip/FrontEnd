@@ -6,8 +6,6 @@ import {
   TextInput,
   ScrollView,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,54 +13,41 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import ImageView from "react-native-image-viewing";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { StackParamList } from "../../interface/navigate";
-
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
 import { API_URL } from "@env";
 
 import axios, { Axios, all } from "axios";
+
+// =============== type ===============
+import { StackParamList } from "../../interface/navigate";
+import { Option, TripOption } from "../../interface/blog";
+
 // =============== svg ===============
 import ArrowLeft from "../../assets/ArrowLeft.svg";
 import DeleteImage from "../../assets/DeleteImage.svg";
 import ImageUploader from "../../assets/ImageUploader.svg";
 import HalfArrowRight from "../../assets/invitation/HalfArrowRight.svg";
+import CoverImage from "../../assets/blog/defaultCoverImage.svg";
+import Close from "../../assets/blog/close.svg";
 
 // =============== components ===============
 import ButtonCustom from "../../components/button";
-
-import {
-  CalendarRange,
-  RangeDatepicker,
-  Icon,
-  IconElement,
-  Datepicker,
-  Autocomplete,
-  AutocompleteItem,
-} from "@ui-kitten/components";
-
+import { CalendarRange, RangeDatepicker, Icon } from "@ui-kitten/components";
 import AutoCompleteCustom from "../../components/autoComplete";
-import { Option, PlaceOption, TripOption } from "../../interface/blog";
-import CoverImage from "../../assets/blog/defaultCoverImage.svg";
-import Close from "../../assets/blog/close.svg";
 import SelectCustom from "../../components/select";
 
 type Props = NativeStackScreenProps<StackParamList, "writeBlog">;
 
-const WriteBlog = ({ navigation, route }: Props) => {
+const WriteBlog = ({ navigation }: Props) => {
   const insets = useSafeAreaInsets();
-
-  // const { placeId, placeName } = route.params;
 
   const { width, height } = Dimensions.get("screen");
 
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
-
-  const [content, setContent] = useState("TEST TEST");
-  const [title, setTitle] = useState("TEST");
+  // =============== useState ===============
+  const [content, setContent] = useState("");
+  const [title, setTitle] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
   const [selectedTrip, setSelectedTrip] = useState("");
@@ -75,15 +60,81 @@ const WriteBlog = ({ navigation, route }: Props) => {
   const [targetImage, setTargetImage] = useState(0);
   const [visible, setIsVisible] = useState(false);
 
+  const [optionsTrip, setOptionsTrip] = useState<Option[]>([]);
+  const [optionsPlace, setOptionsPlace] = useState<Option[]>([]);
+  const [searchPlace, setSearchPlace] = useState("");
+  const [loadingPlace, setLoadingPlace] = useState(false);
+
   // =============== useFocusEffect ===============
   useFocusEffect(
     useCallback(() => {
-      // if (content !== "" && title !== "") {
-      //   setDisableButton(false);
-      // } else {
-      //   setDisableButton(true);
-      // }
-    }, [content]),
+      if (
+        content !== "" &&
+        title !== "" &&
+        dateRange.startDate &&
+        dateRange.endDate
+      ) {
+        setDisableButton(false);
+      } else {
+        setDisableButton(true);
+      }
+    }, [content, title, dateRange]),
+  );
+
+  // place search
+  useFocusEffect(
+    useCallback(() => {
+      const abortController = new AbortController();
+      const signal = abortController.signal;
+
+      if (searchPlace.length >= 2) {
+        (async () => {
+          setLoadingPlace(true);
+          try {
+            const result = await SecureStore.getItemAsync("key");
+            const response = await axios.get(`${API_URL}/place/blogSearch`, {
+              headers: {
+                authorization: result,
+              },
+              params: {
+                input: searchPlace,
+              },
+              signal: signal,
+            });
+
+            setOptionsPlace(response.data);
+            setLoadingPlace(false);
+          } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+              console.log(error.response.data);
+              setOptionsPlace([]);
+              setLoadingPlace(false);
+            }
+          }
+        })();
+      }
+
+      return () => {
+        abortController.abort();
+      };
+    }, [searchPlace]),
+  );
+
+  // get trip name
+  useFocusEffect(
+    useCallback(() => {
+      getUserTripName();
+    }, []),
+  );
+
+  // create trip option
+  useFocusEffect(
+    useCallback(() => {
+      if (allTrip) {
+        const tripNames = allTrip.map((trip) => ({ tripName: trip.name }));
+        setOptionsTrip(tripNames);
+      }
+    }, [allTrip]),
   );
 
   // =============== axios ===============
@@ -158,6 +209,11 @@ const WriteBlog = ({ navigation, route }: Props) => {
     }
   };
 
+  // =============== navigation ===============
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   // =============== image ===============
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -182,52 +238,7 @@ const WriteBlog = ({ navigation, route }: Props) => {
     setDateRange({ startDate: range.startDate, endDate: range.endDate });
   };
 
-  const [optionsTrip, setOptionsTrip] = useState<Option[]>([]);
-  const [optionsPlace, setOptionsPlace] = useState<Option[]>([]);
-
-  const [searchPlace, setSearchPlace] = useState("");
-
-  const [loadingPlace, setLoadingPlace] = useState(false);
-
-  // place search
-  useFocusEffect(
-    useCallback(() => {
-      const abortController = new AbortController();
-      const signal = abortController.signal;
-
-      if (searchPlace.length >= 2) {
-        (async () => {
-          setLoadingPlace(true);
-          try {
-            const result = await SecureStore.getItemAsync("key");
-            const response = await axios.get(`${API_URL}/place/blogSearch`, {
-              headers: {
-                authorization: result,
-              },
-              params: {
-                input: searchPlace,
-              },
-              signal: signal,
-            });
-
-            setOptionsPlace(response.data);
-            setLoadingPlace(false);
-          } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-              console.log(error.response.data);
-              setOptionsPlace([]);
-              setLoadingPlace(false);
-            }
-          }
-        })();
-      }
-
-      return () => {
-        abortController.abort();
-      };
-    }, [searchPlace]),
-  );
-
+  // =============== trip and place ===============
   // add and remove place from selectedTrip
   const handlePressOption = (tripName: string) => {
     const previousPlace = allTrip.find(
@@ -267,20 +278,6 @@ const WriteBlog = ({ navigation, route }: Props) => {
     });
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      getUserTripName();
-    }, []),
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      const tripNames = allTrip.map((trip) => ({ tripName: trip.name }));
-
-      setOptionsTrip(tripNames);
-    }, [allTrip]),
-  );
-
   return (
     <View
       style={{
@@ -310,10 +307,10 @@ const WriteBlog = ({ navigation, route }: Props) => {
         showsHorizontalScrollIndicator={false}
         bounces={false}
         contentContainerStyle={{ flexGrow: 1 }}
-        automaticallyAdjustKeyboardInsets={true}
+        // automaticallyAdjustKeyboardInsets={true}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ paddingBottom: insets.bottom + 40 + 48 }}>
+        <View style={{ paddingBottom: insets.bottom + 40 + 48 + 200 }}>
           <View className="p-[16px] justify-center">
             <TextInput
               value={title}
