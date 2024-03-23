@@ -18,11 +18,13 @@ const SelectCustom = ({
   options,
   selected,
   setSelected,
+  handlePress = () => {},
 }: {
   placeholder: string;
   options: any;
   selected: string;
   setSelected: React.Dispatch<React.SetStateAction<string>>;
+  handlePress?: (tripName: string) => void;
 }) => {
   const screenWidth = Dimensions.get("window").width;
 
@@ -53,7 +55,13 @@ const SelectCustom = ({
                   <Pressable
                     className="px-[4px] py-[4px] "
                     onPress={() => {
-                      setSelected && setSelected(tripName);
+                      if (tripName === selected) {
+                        setSelected("");
+                        handlePress("");
+                      } else {
+                        setSelected(tripName);
+                        handlePress(tripName);
+                      }
                       setDisplayOptions(false);
                     }}
                   >

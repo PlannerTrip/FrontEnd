@@ -61,29 +61,16 @@ const WriteBlog = ({ navigation, route }: Props) => {
     navigation.goBack();
   };
 
-  const [content, setContent] = useState("");
-  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("TEST TEST");
+  const [title, setTitle] = useState("TEST");
   const [images, setImages] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<CalendarRange<Date>>({});
   const [selectedTrip, setSelectedTrip] = useState("");
   const [selectedPlaces, setSelectedPlaces] = useState<Option[]>([]);
 
-  const [allTrip, setAllTrip] = useState([
-    {
-      name: "",
-      places: [
-        {
-          coverImg: "",
-          location: { district: "", province: "" },
-          placeId: "",
-          placeName: "",
-        },
-      ],
-      tripId: "",
-    },
-  ]);
+  const [allTrip, setAllTrip] = useState<TripOption[]>([]);
 
-  const [disableButton, setDisableButton] = useState(true);
+  const [disableButton, setDisableButton] = useState(false);
   const [loadingButton, setLoadingButton] = useState(false);
   const [targetImage, setTargetImage] = useState(0);
   const [visible, setIsVisible] = useState(false);
@@ -91,36 +78,43 @@ const WriteBlog = ({ navigation, route }: Props) => {
   // =============== useFocusEffect ===============
   useFocusEffect(
     useCallback(() => {
-      if (content !== "" && title !== "") {
-        setDisableButton(false);
-      } else {
-        setDisableButton(true);
-      }
+      // if (content !== "" && title !== "") {
+      //   setDisableButton(false);
+      // } else {
+      //   setDisableButton(true);
+      // }
     }, [content]),
   );
 
   // =============== axios ===============
   const sendPost = async () => {
-    setLoadingButton(true);
     try {
+      setLoadingButton(true);
       const result = await SecureStore.getItemAsync("key");
 
       const formData = new FormData();
 
-      // title
-      // date
-
+      // title & content
       formData.append("name", title);
-
       formData.append("note", content);
 
-      formData.append("startDate", dateRange.startDate.toDateString());
+      // date
+      const startDate = dateRange.startDate?.toDateString() || "";
+      const endDate = dateRange.endDate?.toDateString() || "";
 
-      formData.append("endDate", dateRange.endDate.toDateString());
+      formData.append("startDate", startDate);
+      formData.append("endDate", endDate);
 
-      formData.append("tripIdReference", selectedTrip);
+      // trip
+      const trip = allTrip.find((trip) => trip.name === selectedTrip);
+      const tripId = trip ? trip.tripId : "";
+      formData.append("tripIdReference", tripId);
 
-      selectedPlaces.map((place) => formData.append("placeId", place.placeId));
+      selectedPlaces.forEach((place) => {
+        if (place.placeId) {
+          formData.append("place", place.placeId);
+        }
+      });
 
       for (let i = 0; i < images.length; i++) {
         formData.append("files", {
@@ -195,7 +189,7 @@ const WriteBlog = ({ navigation, route }: Props) => {
 
   const [loadingPlace, setLoadingPlace] = useState(false);
 
-  // blogSearch
+  // place search
   useFocusEffect(
     useCallback(() => {
       const abortController = new AbortController();
@@ -215,15 +209,15 @@ const WriteBlog = ({ navigation, route }: Props) => {
               },
               signal: signal,
             });
-            console.log(response.data);
+
             setOptionsPlace(response.data);
             setLoadingPlace(false);
           } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
               console.log(error.response.data);
+              setOptionsPlace([]);
+              setLoadingPlace(false);
             }
-            setOptionsPlace([]);
-            setLoadingPlace(false);
           }
         })();
       }
@@ -234,28 +228,44 @@ const WriteBlog = ({ navigation, route }: Props) => {
     }, [searchPlace]),
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      const places = allTrip.find((trip) => trip.name === selectedTrip)?.places;
+  // add and remove place from selectedTrip
+  const handlePressOption = (tripName: string) => {
+    const previousPlace = allTrip.find(
+      (trip) => trip.name === selectedTrip,
+    )?.places;
 
-      if (places) {
-        places.forEach((place) => {
-          setSelectedPlaces((prev) => {
-            if (!prev.some((p) => p.placeId === place.placeId)) {
-              return [...prev, place];
-            }
-            return prev;
-          });
-        });
+    const currentPlace = allTrip.find((trip) => trip.name === tripName)?.places;
+    const updatedCurrentPlace = currentPlace?.map((trip) => {
+      return { ...trip, inTrip: true };
+    });
+
+    setSelectedPlaces((prev) => {
+      let updatedSelectedPlaces = [...prev];
+
+      // Remove places from previousPlace if they exist in updatedSelectedPlaces
+      if (previousPlace) {
+        updatedSelectedPlaces = updatedSelectedPlaces.filter((place) =>
+          previousPlace.every(
+            (prevPlace) => prevPlace.placeId !== place.placeId,
+          ),
+        );
       }
-    }, [selectedTrip]),
-  );
 
-  useFocusEffect(
-    useCallback(() => {
-      console.log("selectedPlaces", selectedPlaces);
-    }, [selectedPlaces]),
-  );
+      // Add places from currentPlace to updatedSelectedPlaces if they don't already exist
+      if (updatedCurrentPlace) {
+        updatedSelectedPlaces = [
+          ...updatedSelectedPlaces,
+          ...updatedCurrentPlace.filter((place) =>
+            updatedSelectedPlaces.every(
+              (selectedPlace) => selectedPlace.placeId !== place.placeId,
+            ),
+          ),
+        ];
+      }
+
+      return updatedSelectedPlaces;
+    });
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -342,7 +352,6 @@ const WriteBlog = ({ navigation, route }: Props) => {
               >
                 {images &&
                   images.map((uri, index) => {
-                    console.log(uri);
                     return (
                       <Pressable
                         key={index}
@@ -401,6 +410,7 @@ const WriteBlog = ({ navigation, route }: Props) => {
               setSelected={setSelectedTrip}
               placeholder="เลือกทริปการท่องเที่ยว"
               options={optionsTrip}
+              handlePress={handlePressOption}
             />
 
             <Text className="text-[16px] font-bold mt-[16px] mb-[8px]">
@@ -422,13 +432,7 @@ const WriteBlog = ({ navigation, route }: Props) => {
               )}
               placement={"top"}
               accessoryRight={
-                <Icon
-                  fill="#D9D9D9"
-                  name="calendar"
-                  onPress={() => {
-                    console.log("TEST");
-                  }}
-                />
+                <Icon fill="#D9D9D9" name="calendar" onPress={() => {}} />
               }
             />
 
@@ -444,70 +448,75 @@ const WriteBlog = ({ navigation, route }: Props) => {
               options={optionsPlace}
               search={searchPlace}
               setSearch={setSearchPlace}
-              multiple={true}
               loading={loadingPlace}
             />
 
             <View className="my-[8px]">
-              {selectedPlaces.map((place, index) => {
-                const district = place.location.district;
-                const province = place.location.province;
-                const placeId = place.placeId;
-                const placeName = place.placeName;
-                const coverImg = place.coverImg;
+              {selectedPlaces
+                .slice()
+                .reverse()
+                .map((place, index) => {
+                  const district = place.location?.district;
+                  const province = place.location?.province;
+                  const placeId = place.placeId;
+                  const placeName = place.placeName;
+                  const coverImg = place.coverImg;
 
-                return (
-                  <View
-                    key={index}
-                    className={`border border-[#54400E] p-[8px] flex flex-row rounded-[5px] mt-[16px]`}
-                  >
-                    {coverImg ? (
-                      <Image
-                        source={{
-                          uri: coverImg,
-                        }}
-                        className="w-[80px] h-[80px] rounded-[5px] border border-[#54400E]"
-                      />
-                    ) : (
-                      <CoverImage />
-                    )}
+                  return (
+                    <View
+                      key={index}
+                      className={`border border-[#54400E] p-[8px] flex flex-row rounded-[5px] mt-[16px]`}
+                    >
+                      {coverImg ? (
+                        <View className="border border-[#54400E] rounded-[5px]">
+                          <Image
+                            source={{
+                              uri: coverImg,
+                            }}
+                            className="w-[80px] h-[80px]  "
+                          />
+                        </View>
+                      ) : (
+                        <CoverImage />
+                      )}
 
-                    <View className="ml-[16px] flex flex-col justify-between flex-1 ">
-                      <Text
-                        style={{
-                          width: width - (16 * 2 + 8 * 2 + 16 + 24) - 100,
-                        }}
-                        className={`text-[14px] truncate font-bold`}
-                        numberOfLines={1}
-                      >
-                        {placeName}
-                      </Text>
+                      <View className="ml-[16px] flex flex-col justify-between flex-1 ">
+                        <Text
+                          style={{
+                            width: width - (16 * 2 + 8 * 2 + 16 + 24) - 100,
+                          }}
+                          className={`text-[14px] truncate font-bold`}
+                          numberOfLines={1}
+                        >
+                          {placeName}
+                        </Text>
 
-                      <Text className="text-[12px] font-bold text-[#FFC502]">
-                        {district}, {province}
-                      </Text>
+                        <Text className="text-[12px] font-bold text-[#FFC502]">
+                          {district}, {province}
+                        </Text>
 
-                      <Pressable
-                        className="absolute right-0"
-                        onPress={() => {
-                          console.log("", placeId);
-                          setSelectedPlaces((prev) => {
-                            const index = prev.findIndex(
-                              (item) => item.placeId === placeId,
-                            );
+                        {!place.inTrip && (
+                          <Pressable
+                            className="absolute right-0"
+                            onPress={() => {
+                              setSelectedPlaces((prev) => {
+                                const index = prev.findIndex(
+                                  (item) => item.placeId === placeId,
+                                );
 
-                            const updatedArray = [...prev];
-                            updatedArray.splice(index, 1);
-                            return updatedArray;
-                          });
-                        }}
-                      >
-                        <Close />
-                      </Pressable>
+                                const updatedArray = [...prev];
+                                updatedArray.splice(index, 1);
+                                return updatedArray;
+                              });
+                            }}
+                          >
+                            <Close />
+                          </Pressable>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
             </View>
           </View>
         </View>

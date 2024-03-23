@@ -70,6 +70,12 @@ const AutoCompleteCustom = ({
                 (item) => item.placeId === option.placeId,
               );
 
+              const isInTrip = selectedMultiple.find((item) => {
+                if (item.placeId === option.placeId) {
+                  return item;
+                }
+              });
+
               const district = option.location?.district;
               const province = option.location?.province;
               const placeId = option.placeId;
@@ -78,7 +84,8 @@ const AutoCompleteCustom = ({
                 <Pressable
                   className="px-[4px] py-[4px] "
                   onPress={() => {
-                    setSelectedMultiple &&
+                    // remove form selection and not in trip
+                    if (!isInTrip?.inTrip && setSelectedMultiple) {
                       setSelectedMultiple((prev) => {
                         const index = prev.findIndex(
                           (item) => item.placeId === placeId,
@@ -90,8 +97,9 @@ const AutoCompleteCustom = ({
                           return updatedArray;
                         }
 
-                        return [...prev, option];
+                        return [...prev, { ...option, inTrip: false }];
                       });
+                    }
                   }}
                 >
                   <View
