@@ -149,7 +149,6 @@ const Blog = ({ route, navigation }: Props) => {
   };
 
   const handleSearch = () => {
-    console.log("handleSearch");
     setDisplaySearch(true);
   };
 
