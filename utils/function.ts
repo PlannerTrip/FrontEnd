@@ -58,6 +58,7 @@ export const isValidEmail = (email: string) => {
   return emailRegex.test(email);
 };
 
+// date ago
 export const timeDifferenceDisplay = (dateString: string) => {
   // Parse the date string into a Date object
   const date = new Date(dateString);
@@ -95,4 +96,20 @@ export const timeDifferenceDisplay = (dateString: string) => {
   }
 
   return timeString;
+};
+
+// date format DD/MM/YY
+// https://docs.oracle.com/cd/E41183_01/DR/Date_Format_Types.html
+export const changeDateFormat2 = (dateString: string) => {
+  const date = new Date(dateString);
+
+  // Format the date
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+
+  // Add leading zeros if needed
+  const formattedDate = `${day < 10 ? "0" + day : day}/${month < 10 ? "0" + month : month}/${year}`;
+
+  return formattedDate; // Output: 28/02/2024
 };

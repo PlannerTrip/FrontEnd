@@ -50,3 +50,31 @@ export interface BlogCard_Props {
   userprofile: string;
   blogId: string;
 }
+
+export interface BlogInformation_Props {
+  alreadyLike: boolean;
+  createDate: string;
+  date: {
+    start: string;
+    end: string;
+  };
+  img: string[];
+  name: string;
+  places: {
+    coverImg: string;
+    location: {
+      district: string;
+      province: string;
+    };
+    placeName: string;
+    placeId: string;
+    type: string;
+  }[];
+  province: string[];
+  totalLike: number;
+  tripIdReference: string;
+  userId: string;
+  username: string;
+  userprofile: string;
+  note: string;
+}

@@ -111,7 +111,15 @@ const Blog = ({ route, navigation }: Props) => {
       className="bg-[#FFFFFF] h-[100%] w-[100%] overflow-scroll"
     >
       {/* header */}
-      <View className="h-[80px] items-end px-[16px] pt-[16px] bg-[#FFF]  flex-row justify-between">
+      <View
+        className="h-[80px] items-end px-[16px] pt-[16px] bg-[#FFF]  flex-row justify-between"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+        }}
+      >
         <View className="w-[262px] h-[80px] items-end flex-row justify-between">
           <Pressable
             onPress={() => {

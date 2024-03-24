@@ -18,7 +18,7 @@ import * as SecureStore from "expo-secure-store";
 
 import { API_URL } from "@env";
 
-import axios, { Axios, all } from "axios";
+import axios from "axios";
 
 // =============== type ===============
 import { StackParamList } from "../../interface/navigate";
