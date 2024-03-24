@@ -21,6 +21,13 @@ import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
 import WriteBlog from "./screens/writeBlog";
 import BlogInformation from "./screens/blogInformation";
+import MyTrip from "./screens/profile/myTrip";
+import MyBookmark from "./screens/profile/myBookmark";
+import MyBlog from "./screens/profile/myBlog";
+import MyLikeBlog from "./screens/profile/myLikeBlog";
+import EditInformation from "./screens/profile/editInformation";
+import ChangePassword from "./screens/profile/changePassword";
+import Suggest from "./screens/profile/suggest";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -170,6 +177,20 @@ export default function App() {
                     name="blogInformation"
                     component={BlogInformation}
                   />
+                  {/* profile */}
+                  <Stack.Screen name="myTrip" component={MyTrip} />
+                  <Stack.Screen name="myBookmark" component={MyBookmark} />
+                  <Stack.Screen name="myBlog" component={MyBlog} />
+                  <Stack.Screen name="myLikeBlog" component={MyLikeBlog} />
+                  <Stack.Screen
+                    name="editInformation"
+                    component={EditInformation}
+                  />
+                  <Stack.Screen
+                    name="changePassword"
+                    component={ChangePassword}
+                  />
+                  <Stack.Screen name="suggest" component={Suggest} />
                 </>
               ) : (
                 <>
