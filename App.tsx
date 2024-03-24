@@ -20,6 +20,7 @@ import WriteReview from "./screens/writeReview";
 import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
 import WriteBlog from "./screens/writeBlog";
+import BlogInformation from "./screens/blogInformation";
 
 // =================== type ===================
 import { StackParamList } from "./interface/navigate";
@@ -53,7 +54,6 @@ const prefix = Linking.createURL("/");
 
 export default function App() {
   console.log(prefix);
-
   // =================== deepLink ===================
   const config = {
     screens: {
@@ -163,9 +163,13 @@ export default function App() {
                   />
                   <Stack.Screen name="planSelect" component={PlanSelect} />
                   <Stack.Screen name="writeReview" component={WriteReview} />
-                  <Stack.Screen name="writeBlog" component={WriteBlog} />
                   <Stack.Screen name="tripSummary" component={TripSummary} />
                   <Stack.Screen name="tripMember" component={TripMember} />
+                  <Stack.Screen name="writeBlog" component={WriteBlog} />
+                  <Stack.Screen
+                    name="blogInformation"
+                    component={BlogInformation}
+                  />
                 </>
               ) : (
                 <>
