@@ -27,10 +27,10 @@ import {
 import BlogCard from "../../components/blog/blogCard";
 import Loading from "../Loading";
 
-// =============== components ===============
+// =============== type ===============
 import { BlogCard_Props } from "../../interface/blog";
 import { StackParamList } from "../../interface/navigate";
-import SearchCustom from "../../components/seach";
+import SearchCustom from "../../components/search";
 type Props = NativeStackScreenProps<StackParamList, "blog">;
 
 const Blog = ({ route, navigation }: Props) => {
