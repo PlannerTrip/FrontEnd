@@ -70,49 +70,49 @@ const Profile = ({ navigation }: Props) => {
   };
 
   const travelInformation = [
-    {
-      title: "ทริปที่คุณจัด",
-      icon: <MyTrip />,
-      function: () => navigation.navigate("myTrip", { title: "ทริปที่คุณจัด" }),
-    },
-    {
-      title: "สถานที่บุ๊กมาร์ก",
-      icon: <MyBookmark />,
-      function: () =>
-        navigation.navigate("myBookmark", { title: "สถานที่บุ๊กมาร์ก" }),
-    },
-    {
-      title: "บล็อกที่เขียน",
-      icon: <MyBlog />,
-      function: () => navigation.navigate("myBlog", { title: "บล็อกที่เขียน" }),
-    },
-    {
-      title: "บล็อกที่ถูกใจ",
-      icon: <MyLikeBlog />,
-      function: () =>
-        navigation.navigate("myLikeBlog", { title: "บล็อกที่ถูกใจ" }),
-    },
+    // {
+    //   title: "ทริปที่คุณจัด",
+    //   icon: <MyTrip />,
+    //   function: () => navigation.navigate("myTrip", { title: "ทริปที่คุณจัด" }),
+    // },
+    // {
+    //   title: "สถานที่บุ๊กมาร์ก",
+    //   icon: <MyBookmark />,
+    //   function: () =>
+    //     navigation.navigate("myBookmark", { title: "สถานที่บุ๊กมาร์ก" }),
+    // },
+    // {
+    //   title: "บล็อกที่เขียน",
+    //   icon: <MyBlog />,
+    //   function: () => navigation.navigate("myBlog", { title: "บล็อกที่เขียน" }),
+    // },
+    // {
+    //   title: "บล็อกที่ถูกใจ",
+    //   icon: <MyLikeBlog />,
+    //   function: () =>
+    //     navigation.navigate("myLikeBlog", { title: "บล็อกที่ถูกใจ" }),
+    // },
   ];
 
   const personalInformation = [
-    {
-      title: "แก้ไขข้อมูลส่วนตัว",
-      icon: <EditInformation />,
-      function: () =>
-        navigation.navigate("editInformation", { title: "แก้ไขข้อมูลส่วนตัว" }),
-    },
-    {
-      title: "เปลี่ยนรหัสผ่าน",
-      icon: <ChangePassword />,
-      function: () =>
-        navigation.navigate("changePassword", { title: "เปลี่ยนรหัสผ่าน" }),
-    },
-    {
-      title: "แนะนำ ติชม รายงานปัญหา",
-      icon: <Suggest />,
-      function: () =>
-        navigation.navigate("suggest", { title: "แนะนำ ติชม รายงานปัญหา" }),
-    },
+    // {
+    //   title: "แก้ไขข้อมูลส่วนตัว",
+    //   icon: <EditInformation />,
+    //   function: () =>
+    //     navigation.navigate("editInformation", { title: "แก้ไขข้อมูลส่วนตัว" }),
+    // },
+    // {
+    //   title: "เปลี่ยนรหัสผ่าน",
+    //   icon: <ChangePassword />,
+    //   function: () =>
+    //     navigation.navigate("changePassword", { title: "เปลี่ยนรหัสผ่าน" }),
+    // },
+    // {
+    //   title: "แนะนำ ติชม รายงานปัญหา",
+    //   icon: <Suggest />,
+    //   function: () =>
+    //     navigation.navigate("suggest", { title: "แนะนำ ติชม รายงานปัญหา" }),
+    // },
     {
       title: "ออกจากระบบ",
       icon: <LogOut />,
@@ -158,7 +158,7 @@ const Profile = ({ navigation }: Props) => {
         </Text>
       </View>
 
-      <View className="p-[16px]">
+      {/* <View className="p-[16px]">
         <View>
           <Text className="text-[16px] leading-[24px] font-bold">
             ข้อมูลท่องเที่ยว
@@ -183,7 +183,7 @@ const Profile = ({ navigation }: Props) => {
             );
           })}
         </View>
-      </View>
+      </View> */}
 
       <View className="p-[16px]">
         <View>
