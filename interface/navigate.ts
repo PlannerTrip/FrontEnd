@@ -44,4 +44,8 @@ export type StackParamList = {
   forgot: {
     forgotCode?: string;
   };
+
+  blogInformation: {
+    blogId: string;
+  };
 };

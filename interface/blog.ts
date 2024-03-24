@@ -37,3 +37,16 @@ export interface TripOption {
   }[];
   tripId: string;
 }
+
+export interface BlogCard_Props {
+  alreadyLike: boolean;
+  createDate: string;
+  img: string;
+  name: string;
+  province: string[];
+  totalLike: number;
+  userId: string;
+  username: string;
+  userprofile: string;
+  blogId: string;
+}
