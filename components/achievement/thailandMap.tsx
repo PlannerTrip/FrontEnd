@@ -11,14 +11,17 @@ import Animated, {
 } from "react-native-reanimated";
 import mapData, { province_names } from "../../utils/mapData.js";
 import { Svg, Path } from "react-native-svg";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 const ThailandMap = ({
   setProvince,
   province,
+  checkInProvinces,
 }: {
   setProvince: React.Dispatch<React.SetStateAction<string>>;
   province: string;
+  checkInProvinces: string[];
 }) => {
   const { width, height } = Dimensions.get("screen");
 
@@ -67,7 +70,7 @@ const ThailandMap = ({
       finalPositionX.value = flingPositionX.value;
       finalPositionY.value = flingPositionY.value;
 
-      console.log(flingPositionX.value, flingPositionY.value);
+      // console.log(flingPositionX.value, flingPositionY.value);
     });
 
   const pinchGesture = Gesture.Pinch()
@@ -82,7 +85,7 @@ const ThailandMap = ({
     })
     // && savedScale.value * e.scale <= 5
     .onUpdate((e) => {
-      console.log(e.scale, scale.value);
+      // console.log(e.scale, scale.value);
       if (savedScale.value * e.scale >= 1) {
         scale.value = savedScale.value * e.scale;
         // console.log("scale", scale.value, "e scale ", e.scale);
@@ -117,6 +120,8 @@ const ThailandMap = ({
     scale.value = 1;
   }, []);
 
+  const [selectedProvinces, setSelectedProvinces] = useState([]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1, width: 400, height: 600 }}>
       <View>
@@ -150,31 +155,45 @@ const ThailandMap = ({
                     viewBox="0 0 560 1025"
                     aria-label="Map of Thailand"
                   >
-                    {mapData.locations.map((item) => (
-                      <Path
-                        key={item.id}
-                        onPress={() => {
-                          setActiveColor((activeColor) =>
-                            activeColor === item.id ? "" : item.id,
-                          );
+                    {mapData.locations.map((item) => {
+                      const nameTH =
+                        province_names.find(
+                          (province) => province.nameEN === item.name,
+                        )?.nameTH || "";
 
-                          console.log(activeColor);
-                          if (item.name === province) {
-                            setProvince("");
-                          } else {
-                            setProvince(
-                              province_names.find(
-                                (province) => province.nameEN === item.name,
-                              )?.nameTH || "",
+                      let fillColor = "grey";
+                      if (checkInProvinces.includes(nameTH)) {
+                        fillColor = "#FFC502";
+                      }
+                      if (province === nameTH) {
+                        fillColor = "#FF9E02";
+                      }
+
+                      return (
+                        <Path
+                          key={item.id}
+                          onPress={() => {
+                            setActiveColor((activeColor) =>
+                              activeColor === item.id ? "" : item.id,
                             );
-                          }
-                        }}
-                        id={item.id}
-                        name={item.name}
-                        fill={activeColor === item.id ? "#FFC502" : "gray"}
-                        d={item.path}
-                      />
-                    ))}
+
+                            if (item.name === province) {
+                              setProvince("");
+                            } else {
+                              setProvince(
+                                province_names.find(
+                                  (province) => province.nameEN === item.name,
+                                )?.nameTH || "",
+                              );
+                            }
+                          }}
+                          id={item.id}
+                          name={item.name}
+                          fill={fillColor}
+                          d={item.path}
+                        />
+                      );
+                    })}
                   </Svg>
                 </View>
               </GestureDetector>
