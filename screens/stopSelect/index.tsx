@@ -23,13 +23,15 @@ import { Place, PlanPlace } from "../../interface/stopSelect";
 import { FlatList } from "react-native-gesture-handler";
 import PlaceCard from "../../components/planSelect/placeCard";
 import Loading from "../Loading";
+import BackgroundModal from "../../components/backgroundModal";
+import ConfirmModal from "../../components/confirmModal";
 
 type Props = NativeStackScreenProps<StackParamList, "stopSelect">;
 
 const StopSelect = ({ navigation, route }: Props) => {
   const insets = useSafeAreaInsets();
 
-  const { token } = useContext(AuthData);
+  const { token, userId } = useContext(AuthData);
 
   const { tripId, day } = route.params;
   const isFocused = useIsFocused();
@@ -123,8 +125,8 @@ const StopSelect = ({ navigation, route }: Props) => {
 
   const onPressBack = async () => {
     try {
-      if (status === LOADING) {
-        if (!owner) {
+      if (status !== LOADING) {
+        if (owner) {
           await axios.post(
             `${API_URL}/trip/stage`,
             {
@@ -168,6 +170,24 @@ const StopSelect = ({ navigation, route }: Props) => {
           return totalPlaceSelect + 1;
         }
         return totalPlaceSelect - 1;
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const onPressConfirmLeave = async () => {
+    try {
+      await axios.delete(`${API_URL}/trip/member`, {
+        data: { friendId: userId, tripId },
+        headers: {
+          authorization: token,
+        },
+      });
+      setConfirmModal({
+        display: false,
+        title: <></>,
+        confirmTitle: "",
       });
     } catch (err) {
       console.log(err);
@@ -337,6 +357,24 @@ const StopSelect = ({ navigation, route }: Props) => {
             </View>
           )}
         </>
+      )}
+
+      {confirmModal.display && (
+        <BackgroundModal>
+          {/* delete trip */}
+          <ConfirmModal
+            title={confirmModal.title}
+            confirmTitle={confirmModal.confirmTitle}
+            onPressCancel={() => {
+              setConfirmModal({
+                display: false,
+                title: <></>,
+                confirmTitle: "",
+              });
+            }}
+            onPressConfirm={onPressConfirmLeave}
+          />
+        </BackgroundModal>
       )}
     </View>
   );

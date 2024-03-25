@@ -247,9 +247,13 @@ const TripSummary = ({ route, navigation }: Props) => {
       if (data.stage === "planSelect") {
         navigation.navigate("planSelect", { tripId: tripId });
       } else if (data.stage === "finish") {
-        if (!owner) {
-          navigation.navigate("tab");
-        }
+        setOwner(owner=>{
+          if (!owner) {
+            navigation.navigate("tab");
+          }
+          return owner
+        })
+       
       } else if (data.stage === "placeSelect") {
         navigation.navigate("placeSelect", { tripId: tripId });
       } else if (data.stage === "invitation") {

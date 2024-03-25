@@ -57,6 +57,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { EvaIconsPack } from "@ui-kitten/eva-icons";
 import { default as mapping } from "./mapping.json"; // <-- import mapping
 import { default as theme } from "./theme.json"; // <-- import mapping
+import TripDetail from "./screens/tripDetail";
 
 const prefix = Linking.createURL("/");
 
@@ -150,6 +151,7 @@ export default function App() {
           <NavigationContainer linking={linking}>
             <Stack.Navigator
               screenOptions={{
+                gestureEnabled: false,
                 headerShown: false,
                 animation: "none",
               }}
@@ -193,6 +195,7 @@ export default function App() {
                   />
                   <Stack.Screen name="suggest" component={Suggest} />
                   <Stack.Screen name="stopSelect" component={StopSelect} />
+                  <Stack.Screen name="tripDetail" component={TripDetail} />
                 </>
               ) : (
                 <>

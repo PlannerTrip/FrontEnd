@@ -36,7 +36,9 @@ const ButtonCustom = ({
               ? "h-[48px] p-[12px]"
               : size === "middle"
                 ? "h-[40px] px-[12px] py-[8px]"
-                : "h-[32px] p-[4px]"
+                : size === "verySmall"
+                  ? "h-[26px] pt-[4px]"
+                  : "h-[32px] p-[4px]"
           }  ${
             fill === "solid"
               ? disable

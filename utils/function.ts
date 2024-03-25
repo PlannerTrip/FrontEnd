@@ -117,3 +117,85 @@ export const changeDateFormat2 = (dateString: string) => {
 
   return formattedDate; // Output: 28/02/2024
 };
+
+export const compareTime = (a: string, b: string) => {
+  const [hourA, minuteA] = a.split(":").map(Number);
+  const [hourB, minuteB] = b.split(":").map(Number);
+
+  if (hourA !== hourB) {
+    return hourA - hourB;
+  } else {
+    return minuteA - minuteB;
+  }
+};
+
+const changeFormatToPlan = (dailyPlan: Plan) => {
+  const formatPlan = [
+    ...dailyPlan.places.map((item) => ({
+      id: item.placeId,
+      startTime: item.startTime,
+      endTime: item.endTime,
+      type: "place",
+      name: item.placeName,
+      coverImg: item.covetImg,
+      location: item.location,
+      latitude: item.latitude,
+      longitude: item.longitude,
+    })),
+    ...dailyPlan.activity.map((item) => ({
+      id: item.activityId,
+      startTime: item.startTime,
+      endTime: item.endTime,
+      type: "activity",
+      name: item.name,
+      coverImg: [],
+      location: { address: "", district: "", province: "" },
+      latitude: 0,
+      longitude: 0,
+    })),
+  ];
+
+  const sortPlan = formatPlan.sort((dailyPlanA, dailyPlanB) => {
+    return timeComparator(dailyPlanA.startTime, dailyPlanB.startTime);
+  });
+
+  let firstPlace = true;
+  let currentPosition = { latitude: 0, longitude: 0 };
+
+  const addFirstPlace = sortPlan.map((current) => {
+    if (current.type === "place" && firstPlace) {
+      firstPlace = false;
+      currentPosition = {
+        latitude: current.latitude,
+        longitude: current.longitude,
+      };
+      return { ...current, firstPlace: true };
+    }
+    return { ...current, firstPlace: false };
+  });
+
+  // add distant from prevPlace
+  const sortPlanAddDistant = addFirstPlace.map((dailyPlan, index) => {
+    let distant = -1;
+    if (dailyPlan.type === "activity") {
+      return { ...dailyPlan, distant: 0 };
+    }
+
+    if (index !== 0) {
+      distant = distanceTwoPoint(
+        currentPosition.latitude,
+        currentPosition.longitude,
+        dailyPlan.latitude,
+        dailyPlan.longitude,
+      );
+    }
+
+    currentPosition = {
+      latitude: dailyPlan.latitude,
+      longitude: dailyPlan.longitude,
+    };
+    return { ...dailyPlan, distant: distant };
+  });
+
+  return sortPlanAddDistant;
+};

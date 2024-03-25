@@ -18,7 +18,15 @@ const Header = ({
 }) => {
   return (
     <>
-      <View className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end ">
+      <View
+        className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end "
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+        }}
+      >
         <Pressable onPress={onPressBack}>
           <ArrowLeft />
         </Pressable>
