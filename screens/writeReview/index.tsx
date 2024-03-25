@@ -45,6 +45,7 @@ const WriteReview = ({ navigation, route }: Props) => {
     const [images, setImages] = useState<string[]>([]);
 
     const [disableButton, setDisableButton] = useState(true);
+    const [loadingButton, setLoadingButton] = useState(false);
     const [targetImage, setTargetImage] = useState(0);
     const [visible, setIsVisible] = useState(false);
 
@@ -81,6 +82,7 @@ const WriteReview = ({ navigation, route }: Props) => {
     };
 
     const sendPost = async () => {
+        setLoadingButton(true);
         try {
             const result = await SecureStore.getItemAsync("key");
 
@@ -105,12 +107,13 @@ const WriteReview = ({ navigation, route }: Props) => {
                 },
             });
 
+            setLoadingButton(false);
             handleGoBack();
         } catch (error) {
-            console.log("error", error);
             if (axios.isAxiosError(error) && error.response) {
                 console.log(error.response.data);
             }
+            setLoadingButton(false);
         }
     };
 
@@ -144,7 +147,7 @@ const WriteReview = ({ navigation, route }: Props) => {
                 bounces={false}
                 contentContainerStyle={{ flexGrow: 1 }}
             >
-                <View>
+                <View style={{ paddingBottom: insets.bottom + 40 + 48 }}>
                     <View className=" p-[16px] justify-center">
                         <Text className="text-[24px] leading-[36px] font-bold">
                             {placeName}
@@ -263,6 +266,7 @@ const WriteReview = ({ navigation, route }: Props) => {
                     title="โพสต์"
                     onPress={handlePost}
                     disable={disableButton}
+                    loading={loadingButton}
                 />
             </View>
         </View>

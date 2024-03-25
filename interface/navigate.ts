@@ -16,7 +16,7 @@ export type StackParamList = {
   achievement: undefined;
   blog: undefined;
   discovery: undefined;
-  profile: undefined;
+
   tripPlanner: undefined;
   placeInformation: {
     placeId: string;
@@ -44,5 +44,33 @@ export type StackParamList = {
   welcome: undefined;
   forgot: {
     forgotCode?: string;
+  };
+
+  blogInformation: {
+    blogId: string;
+  };
+
+  // profile
+  profile: undefined;
+  myTrip: {
+    title: string;
+  };
+  myBookmark: {
+    title: string;
+  };
+  myBlog: {
+    title: string;
+  };
+  myLikeBlog: {
+    title: string;
+  };
+  editInformation: {
+    title: string;
+  };
+  changePassword: {
+    title: string;
+  };
+  suggest: {
+    title: string;
   };
 };
