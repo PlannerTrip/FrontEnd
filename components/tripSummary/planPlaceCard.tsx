@@ -22,7 +22,9 @@ const PlanPlaceCard = ({
     <View className="flex-row mt-[16px] w-[282px] h-[96px] border rounded-[5px] p-[8px]">
       {/* cover img */}
       <View className="flex justify-center items-center border rounded-[5px] overflow-hidden w-[80px] h-[80px] mr-[16px]">
-        <Image source={{ uri: coverImg[0] }} className="h-[80px] w-[100%]" />
+        {coverImg && coverImg[0] && (
+          <Image source={{ uri: coverImg[0] }} className="h-[80px] w-[100%]" />
+        )}
       </View>
 
       <View>

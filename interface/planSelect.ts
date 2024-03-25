@@ -47,6 +47,9 @@ export interface PlaceCardInput {
   tripId: string;
   coverImg: string[];
   selectBy: string[];
+  showAddButton?: boolean;
+  alreadyAdd?: boolean;
+  onClickAddButton?: (add: boolean) => void;
 }
 
 export interface PlanPlaceCardInput {

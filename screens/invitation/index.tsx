@@ -87,6 +87,7 @@ const Invitation = ({ route, navigation }: Props) => {
         transports: ["websocket"],
       });
       handleSocket(socket);
+      setStatus(LOADING);
 
       // get data of user
       getMember();

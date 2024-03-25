@@ -51,7 +51,6 @@ const PlanSelect = ({ route, navigation }: Props) => {
 
   const scrollRef = useRef<ScrollView>(null);
   const flatList = useRef<FlatList>(null);
-
   // ====================== useState ======================
 
   const [owner, setOwner] = useState(false);
@@ -237,23 +236,28 @@ const PlanSelect = ({ route, navigation }: Props) => {
         latitude: number;
         longitude: number;
       }) => {
-        const distant = distanceTwoPoint(
-          location.latitude,
-          location.longitude,
-          data.latitude,
-          data.longitude,
-        );
-        setPlan((plan) =>
-          plan.map((item) => {
-            if (item.day === data.day) {
-              return {
-                ...item,
-                place: [...item.place, { ...data.place, distant: distant }],
-              };
-            }
-            return item;
-          }),
-        );
+        // console.log(data);
+
+        setLocation((location) => {
+          const distant = distanceTwoPoint(
+            location.latitude,
+            location.longitude,
+            data.latitude,
+            data.longitude,
+          );
+          setPlan((plan) =>
+            plan.map((item) => {
+              if (item.day === data.day) {
+                return {
+                  ...item,
+                  place: [...item.place, { ...data.place, distant: distant }],
+                };
+              }
+              return item;
+            }),
+          );
+          return location;
+        });
       },
     );
   };
@@ -293,6 +297,7 @@ const PlanSelect = ({ route, navigation }: Props) => {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
+
       const response: AxiosResponse<{
         places: Place[];
         plan: Plan[];

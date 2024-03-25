@@ -66,6 +66,7 @@ const TripSummary = ({ route, navigation }: Props) => {
 
   const [owner, setOwner] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
+    type: "leave",
     display: false,
     title: <></>,
     confirmTitle: "",
@@ -245,10 +246,19 @@ const TripSummary = ({ route, navigation }: Props) => {
     socket.on("updateStage", (data: { stage: string }) => {
       if (data.stage === "planSelect") {
         navigation.navigate("planSelect", { tripId: tripId });
-      } else if (data.stage === "finish" && !owner) {
-        navigation.navigate("tab");
+      } else if (data.stage === "finish") {
+        if (!owner) {
+          navigation.navigate("tab");
+        }
       } else if (data.stage === "placeSelect") {
         navigation.navigate("placeSelect", { tripId: tripId });
+      } else if (data.stage === "invitation") {
+        navigation.navigate("invitation", { tripId: tripId });
+      } else {
+        navigation.navigate("stopSelect", {
+          tripId: tripId,
+          day: Number(data.stage.split("-")[1]),
+        });
       }
     });
   };
@@ -297,6 +307,7 @@ const TripSummary = ({ route, navigation }: Props) => {
           );
         } else {
           setConfirmModal({
+            type: "leave",
             display: true,
             title: <Text className="font-bold">คุณกำลังจะออกจากกลุ่ม</Text>,
             confirmTitle: "ออก",
@@ -314,7 +325,12 @@ const TripSummary = ({ route, navigation }: Props) => {
           authorization: token,
         },
       });
-      setConfirmModal({ display: false, title: <></>, confirmTitle: "" });
+      setConfirmModal({
+        type: "leave",
+        display: false,
+        title: <></>,
+        confirmTitle: "",
+      });
     } catch (err) {
       console.log(err);
     }
@@ -362,10 +378,61 @@ const TripSummary = ({ route, navigation }: Props) => {
     setDisplayDaySelectModal(true);
   };
 
-  const onPressModalDateSelect = (day: number) => {
-    // sent socket
+  const onPressModalDateSelect = async (day: number) => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        {
+          tripId,
+          stage: `stopSelect-${day}`,
+        },
+        {
+          headers: {
+            authorization: token,
+          },
+        },
+      );
+      setDisplayDaySelectModal(false);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-    navigation.navigate("stopSelect", { tripId: tripId, day: day });
+  const onPressChangeDate = () => {
+    if (owner) {
+      setConfirmModal({
+        type: "dateChage",
+        display: true,
+        title: (
+          <>
+            <Text className="font-bold">การเปลี่ยนวันที่ต้องเลือก</Text>
+            <Text className="font-bold">
+              สถานที่ท่องเที่ยวในแต่ละวันอีกครั้ง
+            </Text>
+          </>
+        ),
+        confirmTitle: "เปลี่ยน",
+      });
+    }
+  };
+
+  const onPressHandleChangDate = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        {
+          tripId,
+          stage: "invitation",
+        },
+        {
+          headers: {
+            authorization: token,
+          },
+        },
+      );
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // ----------------------- onBlur -----------------------
@@ -407,7 +474,9 @@ const TripSummary = ({ route, navigation }: Props) => {
 
   const timeComparator = (a: string, b: string) => {
     if (a === "") {
-      return 1;
+      return 1; // Empty strings come after non-empty strings
+    } else if (b === "") {
+      return -1; // Non-empty strings come before empty strings
     }
     const [hourA, minuteA] = a.split(":").map(Number);
     const [hourB, minuteB] = b.split(":").map(Number);
@@ -578,15 +647,17 @@ const TripSummary = ({ route, navigation }: Props) => {
                 />
                 {/* trip date */}
                 <TextTitle title="วันเดินทาง" />
-                <RangeDatepicker
-                  range={{
-                    startDate: new Date(date.start),
-                    endDate: new Date(date.end),
-                  }}
-                  disabled={true}
-                  size="small"
-                  style={{ width: 326, marginTop: 8, marginBottom: 16 }}
-                />
+                <Pressable onPress={onPressChangeDate}>
+                  <RangeDatepicker
+                    range={{
+                      startDate: new Date(date.start),
+                      endDate: new Date(date.end),
+                    }}
+                    disabled={true}
+                    size="small"
+                    style={{ width: 326, marginTop: 8, marginBottom: 16 }}
+                  />
+                </Pressable>
                 <TextTitle title="บันทึกเพิ่มเติม" />
                 <TextInput
                   editable={owner}
@@ -686,12 +757,17 @@ const TripSummary = ({ route, navigation }: Props) => {
             confirmTitle={confirmModal.confirmTitle}
             onPressCancel={() => {
               setConfirmModal({
+                type: "leave",
                 display: false,
                 title: <></>,
                 confirmTitle: "",
               });
             }}
-            onPressConfirm={onPressConfirmLeave}
+            onPressConfirm={
+              confirmModal.type === "leave"
+                ? onPressConfirmLeave
+                : onPressHandleChangDate
+            }
           />
         </BackgroundModal>
       )}

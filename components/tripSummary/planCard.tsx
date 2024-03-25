@@ -82,24 +82,39 @@ const PlanCard = ({
         ) {
           validate = false;
         }
-        const currentTime =
+        let currentTime =
           type === "startTime"
             ? [formattedTime, startOrEndTime]
             : [startOrEndTime, formattedTime];
+        if (startOrEndTime === "") {
+          currentTime = [formattedTime, formattedTime];
+        }
 
         // check any time in this timeRange
         if (validate) {
           validate = timeTable.every((time) => {
-            console.log(time);
-            if (
-              startOrEndTime === "" ||
-              time[2] === id ||
-              time.some((item) => item === "")
-            ) {
+            // console.log(time);
+            // if (
+            //   startOrEndTime === "" ||
+            //   time[2] === id ||
+            //   time.some((item) => item === "")
+            // ) {
+            //   return true;
+            // }
+            if (time[2] === id || (time[0] === "" && time[1] === "")) {
+              // console.log(time);
               return true;
             }
 
+            // console.log(
+            //   compareTime(time[0], currentTime[1]) < 0 &&
+            //     compareTime(time[0], currentTime[0]) > 0,
+            // );
             if (
+              (compareTime(time[0], currentTime[0]) < 0 &&
+                compareTime(time[1], currentTime[0]) > 0) ||
+              (compareTime(time[0], currentTime[1]) < 0 &&
+                compareTime(time[1], currentTime[1]) > 0) ||
               (compareTime(time[0], currentTime[1]) < 0 &&
                 compareTime(time[0], currentTime[0]) > 0) ||
               (compareTime(time[1], currentTime[1]) < 0 &&
@@ -116,6 +131,19 @@ const PlanCard = ({
             { tripId, id, type, time: formattedTime },
             { headers: { Authorization: token } },
           );
+          if (startOrEndTime === "" && type === "startTime") {
+            await axios.put(
+              `${API_URL}/trip/planTime`,
+              { tripId, id, type: "endTime", time: formattedTime },
+              { headers: { Authorization: token } },
+            );
+          } else if (startOrEndTime === "" && type === "endTime") {
+            await axios.put(
+              `${API_URL}/trip/planTime`,
+              { tripId, id, type: "startTime", time: formattedTime },
+              { headers: { Authorization: token } },
+            );
+          }
         }
       }
     } catch (err) {

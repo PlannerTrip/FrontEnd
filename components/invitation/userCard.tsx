@@ -47,7 +47,7 @@ const UserCard = ({
         endDate: date.end === "" ? null : new Date(date.end),
         startDate: date.start === "" ? null : new Date(date.start),
       };
-    })
+    }),
   );
 
   // ================= useEffect  =================
@@ -60,7 +60,7 @@ const UserCard = ({
           endDate: date.end === "" ? null : new Date(date.end),
           startDate: date.start === "" ? null : new Date(date.start),
         };
-      })
+      }),
     );
   }, [data]);
 
@@ -77,7 +77,7 @@ const UserCard = ({
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {
       console.log(err);
@@ -115,7 +115,7 @@ const UserCard = ({
             headers: {
               authorization: token,
             },
-          }
+          },
         );
       }
     } catch (err) {
@@ -137,11 +137,17 @@ const UserCard = ({
           headers: {
             authorization: token,
           },
-        }
+        },
       );
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const handleDatePickerFilter = (date: Date) => {
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - 1);
+    return currentDate <= date;
   };
 
   return (
@@ -179,6 +185,7 @@ const UserCard = ({
         >
           <RangeDatepicker
             range={date}
+            filter={handleDatePickerFilter}
             onSelect={(range) => {
               onSelect(range, index);
             }}
