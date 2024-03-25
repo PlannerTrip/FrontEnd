@@ -16,3 +16,8 @@ export const RECOMMEND = "Recommend";
 export const RECENT = "Recent";
 export const RECOMMEND_LABEL = "แนะนำ";
 export const RECENT_LABEL = "ล่าสุด";
+
+export const MAP = "Recommend";
+export const MISSION = "Recent";
+export const MAP_LABEL = "แผนที่";
+export const MISSION_LABEL = "ภารกิจ";
