@@ -1,48 +1,83 @@
 import { Text, Image, View } from "react-native";
 import TextTitle from "../tripCreate/TextTitle";
+import { Pressable } from "react-native";
+import ButtonCustom from "../button";
 
 const PlanPlaceCard = ({
-  index,
+  firstPlace,
   startTime,
   endTime,
   name,
   distance,
   location,
   coverImg,
+  currentPlace = false,
+  onPressCheckIn,
 }: {
-  index: number;
+  firstPlace: boolean;
   startTime: string;
   endTime: string;
   distance: number;
   location: { address: string; district: string; province: string };
   name: string;
   coverImg: string[];
+  currentPlace?: boolean;
+  onPressCheckIn?: () => void;
 }) => {
   return (
-    <View className="flex-row mt-[16px] w-[282px] h-[96px] border rounded-[5px] p-[8px]">
+    <View className=" mt-[16px] w-[282px]  border rounded-[5px] p-[8px]">
       {/* cover img */}
-      <View className="flex justify-center items-center border rounded-[5px] overflow-hidden w-[80px] h-[80px] mr-[16px]">
-        <Image source={{ uri: coverImg[0] }} className="h-[80px] w-[100%]" />
-      </View>
+      <View className="flex-row">
+        <View className="flex justify-center items-center border rounded-[5px] overflow-hidden w-[80px] h-[80px] mr-[16px]">
+          {coverImg && coverImg[0] && (
+            <Image
+              source={{ uri: coverImg[0] }}
+              className="h-[80px] w-[100%]"
+            />
+          )}
+        </View>
 
-      <View>
-        {/* name */}
-        <TextTitle title={name} additionalClass="w-[148px] mb-[16px]" />
-        {/* location */}
-        <View className="flex-row  items-center ">
-          <Text className="text-[#FFC502] text-[12px] font-bold leading-[18px]">
-            {location.district},{location.province}
-          </Text>
-        </View>
-        {/* distant */}
-        <View className="flex-row mt-[4px] items-center ">
-          <Text className="text-[#FFC502] text-[12px] font-bold leading-[18px]">
-            {index === 0
-              ? `จุดเริ่มต้น`
-              : `ห่างจากจุดที่แล้ว ${distance.toFixed(2)} กม.`}
-          </Text>
+        <View>
+          {/* name */}
+          <TextTitle title={name} additionalClass="w-[148px] mb-[16px]" />
+          {/* location */}
+          <View className="flex-row  items-center ">
+            <Text className="text-[#FFC502] text-[12px] font-bold leading-[18px]">
+              {location.district},{location.province}
+            </Text>
+          </View>
+          {/* distant */}
+          <View className="flex-row mt-[4px] items-center ">
+            <Text className="text-[#FFC502] text-[12px] font-bold leading-[18px]">
+              {firstPlace
+                ? `จุดเริ่มต้น`
+                : `ห่างจากจุดที่แล้ว ${distance.toFixed(2)} กม.`}
+            </Text>
+          </View>
         </View>
       </View>
+      {currentPlace && (
+        <View className="flex-row ">
+          <ButtonCustom
+            title="เช็คอิน"
+            styleButton=" w-[100%] "
+            size="verySmall"
+            styleText="text-[12px]"
+          />
+          <Pressable className="w-[59px] ml-[4px] mt-[8px]" onPress={() => {}}>
+            <View className="border border-[#FFC502] rounded h-[26px] flex justify-center items-center">
+              <Text className="text-[#FFC502] text-[16px] font-bold">
+                นำทาง
+              </Text>
+            </View>
+          </Pressable>
+          <Pressable className="w-[45px] ml-[4px] mt-[8px]" onPress={() => {}}>
+            <View className="border border-[#FFC502] rounded h-[26px] flex justify-center items-center">
+              <Text className="text-[#FFC502] text-[16px] font-bold">ข้าม</Text>
+            </View>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 };

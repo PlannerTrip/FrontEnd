@@ -11,6 +11,8 @@ export type StackParamList = {
     tripId: string;
     member: Member[];
   };
+  stopSelect: { tripId: string; day: number };
+  tripDetail: { tripId: string };
 
   achievement: undefined;
   blog: undefined;
