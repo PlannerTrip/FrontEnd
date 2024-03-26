@@ -12,6 +12,7 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 // ====================== svg ======================
 
 import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
+import Empty from "../../assets/placeSelect/empty.svg";
 
 import { Place } from "../../interface/placeDiscovery";
 
@@ -20,6 +21,7 @@ import Loading from "../Loading";
 
 import { API_URL } from "@env";
 import { LOADING, SUCCESS } from "../../utils/const";
+import SearchCustom from "../../components/search";
 
 type Props = NativeStackScreenProps<StackParamList, "placeDiscovery">;
 
@@ -40,6 +42,8 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
   const [currentTab, setCurrentTab] = useState(suggest);
   const [places, setPlaces] = useState<Place[]>([]);
   const [status, setStatus] = useState(LOADING);
+  const [search, setSearch] = useState("");
+  const [displaySearch, setDisplaySearch] = useState(false);
 
   // ====================== useFocusEffect ======================
 
@@ -63,6 +67,17 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
       }
     }, [tripId, isFocused]),
   );
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (displaySearch && search !== "") {
+        setStatus(LOADING);
+        getSearchData();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [search, displaySearch]);
 
   // ====================== function ======================
 
@@ -129,6 +144,21 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
     }
   };
 
+  const getSearchData = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/place/search`, {
+        params: { tripId: tripId, input: search },
+        headers: {
+          authorization: token,
+        },
+      });
+      setPlaces(response.data);
+      setStatus(SUCCESS);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const onPressIcon = async (placeId: string) => {
     try {
       await axios.post(
@@ -163,51 +193,79 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
         }}
         className="bg-[#FFF] h-[100%] flex-col"
       >
-        {/* header */}
         <View className="h-[80px] items-end px-[16px] pt-[16px] bg-[#FFF]  flex-row justify-between">
-          <Pressable onPress={onPressBack} className="mb-[16px]">
-            <ArrowLeft />
-          </Pressable>
-          {/* tab */}
-          <View className="w-[262px] h-[80px] items-end flex-row justify-between">
-            <Pressable
-              onPress={() => {
-                setCurrentTab(suggest);
-                handleGetData(suggest);
-              }}
-              className={`w-[123px] h-[48px] ${
-                currentTab === suggest ? "border-b-[2px] border-[#FFC502]" : ""
-              } flex justify-center items-center`}
-            >
-              <Text
-                className={`${
-                  currentTab === suggest ? "text-[#FFC502] " : ""
-                } font-bold`}
+          {displaySearch ? (
+            <View className="pb-[12px] w-[100%]">
+              <SearchCustom
+                handleGoBack={() => {
+                  setDisplaySearch(false);
+                  setSearch("");
+                  handleGetData(currentTab);
+                }}
+                placeholder="พิมพ์คำที่ต้องการค้นหา"
+                setSearch={setSearch}
+                search={search}
+              />
+            </View>
+          ) : (
+            // header
+            <>
+              <Pressable onPress={onPressBack} className="mb-[16px]">
+                <ArrowLeft />
+              </Pressable>
+              {/* tab */}
+              <View className="w-[262px] h-[80px] items-end flex-row justify-between">
+                <Pressable
+                  onPress={() => {
+                    setCurrentTab(suggest);
+                    handleGetData(suggest);
+                  }}
+                  className={`w-[123px] h-[48px] ${
+                    currentTab === suggest
+                      ? "border-b-[2px] border-[#FFC502]"
+                      : ""
+                  } flex justify-center items-center`}
+                >
+                  <Text
+                    className={`${
+                      currentTab === suggest ? "text-[#FFC502] " : ""
+                    } font-bold`}
+                  >
+                    แนะนำ
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setCurrentTab(bookmark);
+                    handleGetData(bookmark);
+                  }}
+                  className={`w-[123px] h-[48px]    flex justify-center items-center  ${
+                    currentTab === bookmark
+                      ? "border-b-[2px] border-[#FFC502]"
+                      : ""
+                  }`}
+                >
+                  <Text
+                    className={` ${
+                      currentTab === bookmark ? "text-[#FFC502] " : ""
+                    } font-bold`}
+                  >
+                    บุ๊กมาร์ก
+                  </Text>
+                </Pressable>
+              </View>
+              <Pressable
+                className="mb-[16px]"
+                onPress={() => {
+                  setDisplaySearch(true);
+                }}
               >
-                แนะนำ
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setCurrentTab(bookmark);
-                handleGetData(bookmark);
-              }}
-              className={`w-[123px] h-[48px]    flex justify-center items-center  ${
-                currentTab === bookmark ? "border-b-[2px] border-[#FFC502]" : ""
-              }`}
-            >
-              <Text
-                className={` ${
-                  currentTab === bookmark ? "text-[#FFC502] " : ""
-                } font-bold`}
-              >
-                บุ๊กมาร์ก
-              </Text>
-            </Pressable>
-          </View>
-          <Pressable className="mb-[16px]">
-            <Image source={require("../../assets/placeDiscovery/search.png")} />
-          </Pressable>
+                <Image
+                  source={require("../../assets/placeDiscovery/search.png")}
+                />
+              </Pressable>
+            </>
+          )}
         </View>
         {/* content */}
         {status === LOADING ? (
@@ -215,6 +273,12 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
             className={`bg-[#F5F5F5] grow flex justify-center items-center`}
           >
             <Loading />
+          </View>
+        ) : places.length === 0 ? (
+          <View
+            className={`bg-[#F5F5F5] grow flex justify-center items-center`}
+          >
+            <Empty />
           </View>
         ) : (
           <ScrollView className={`bg-[#F5F5F5] `}>
