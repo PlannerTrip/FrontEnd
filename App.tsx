@@ -20,6 +20,10 @@ import WriteReview from "./screens/writeReview";
 import PlaceSelect from "./screens/placeSelect";
 import PlaceDiscovery from "./screens/placeDiscovery";
 import WriteBlog from "./screens/writeBlog";
+import TripMember from "./screens/tripMember";
+import StopSelect from "./screens/stopSelect";
+import PlanSelect from "./screens/planSelect";
+import TripSummary from "./screens/tripSummary";
 import BlogInformation from "./screens/blogInformation";
 import MyTrip from "./screens/profile/myTrip";
 import MyBookmark from "./screens/profile/myBookmark";
@@ -48,14 +52,12 @@ import {
   Layout,
 } from "@ui-kitten/components";
 
-import PlanSelect from "./screens/planSelect";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import TripSummary from "./screens/tripSummary";
 
 import { EvaIconsPack } from "@ui-kitten/eva-icons";
 import { default as mapping } from "./mapping.json"; // <-- import mapping
 import { default as theme } from "./theme.json"; // <-- import mapping
-import TripMember from "./screens/tripMember";
+import TripDetail from "./screens/tripDetail";
 
 const prefix = Linking.createURL("/");
 
@@ -149,6 +151,7 @@ export default function App() {
           <NavigationContainer linking={linking}>
             <Stack.Navigator
               screenOptions={{
+                gestureEnabled: false,
                 headerShown: false,
                 animation: "none",
               }}
@@ -191,6 +194,8 @@ export default function App() {
                     component={ChangePassword}
                   />
                   <Stack.Screen name="suggest" component={Suggest} />
+                  <Stack.Screen name="stopSelect" component={StopSelect} />
+                  <Stack.Screen name="tripDetail" component={TripDetail} />
                 </>
               ) : (
                 <>

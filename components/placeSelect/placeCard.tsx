@@ -38,7 +38,12 @@ const PlaceCard = ({
       <View className="flex-row">
         {/* cover img */}
         <View className="flex justify-center items-center overflow-hidden border w-[128px] h-[128px] rounded-[5px] mr-[16px]">
-          <Image source={{ uri: coverImg[0] }} className="h-[128px] w-[100%]" />
+          {coverImg && coverImg[0] && (
+            <Image
+              source={{ uri: coverImg[0] }}
+              className="h-[128px] w-[100%]"
+            />
+          )}
         </View>
         {/* detail */}
         <View className="w-[196px] ">
@@ -77,9 +82,8 @@ const PlaceCard = ({
               introduction === "" ? "h-[78px]" : "h-[26px]"
             } overflow-hidden `}
           >
-            {tag.map((tagName) => (
-              <Tag tagName={tagName} key={tagName} />
-            ))}
+            {tag &&
+              tag.map((tagName) => <Tag tagName={tagName} key={tagName} />)}
           </View>
           {/* location */}
           <View className="flex-row mt-[3px] items-center ">
