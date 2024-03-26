@@ -9,6 +9,7 @@ export interface TripSummaryInformation {
     member: Member[];
     coverImg: string;
     currentPlace: string;
+    prevPlaceStatus: string;
   };
 
   plan: Plan[];
@@ -69,4 +70,6 @@ export interface PlaceCard {
   longitude: number;
   distant: number;
   firstPlace: boolean;
+  prevPlace?: string;
+  nextPlace?: string;
 }

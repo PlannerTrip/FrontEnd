@@ -2,6 +2,7 @@ import { Text, Image, View } from "react-native";
 import TextTitle from "../tripCreate/TextTitle";
 import { Pressable } from "react-native";
 import ButtonCustom from "../button";
+import * as Linking from "expo-linking";
 
 const PlanPlaceCard = ({
   firstPlace,
@@ -13,6 +14,9 @@ const PlanPlaceCard = ({
   coverImg,
   currentPlace = false,
   onPressCheckIn,
+  onPressSkip,
+  latitude = 0,
+  longitude = 0,
 }: {
   firstPlace: boolean;
   startTime: string;
@@ -23,9 +27,16 @@ const PlanPlaceCard = ({
   coverImg: string[];
   currentPlace?: boolean;
   onPressCheckIn?: () => void;
+  onPressSkip?: () => void;
+  latitude?: number;
+  longitude?: number;
 }) => {
+  const handleMap = () => {
+    Linking.openURL(`https://www.google.com/maps?q=${latitude},${longitude}`);
+  };
+
   return (
-    <View className=" mt-[16px] w-[282px]  border rounded-[5px] p-[8px]">
+    <View className=" mt-[16px] w-[282px]  border rounded-[5px] p-[8px] bg-white">
       {/* cover img */}
       <View className="flex-row">
         <View className="flex justify-center items-center border rounded-[5px] overflow-hidden w-[80px] h-[80px] mr-[16px]">
@@ -63,15 +74,19 @@ const PlanPlaceCard = ({
             styleButton=" w-[100%] "
             size="verySmall"
             styleText="text-[12px]"
+            onPress={onPressCheckIn}
           />
-          <Pressable className="w-[59px] ml-[4px] mt-[8px]" onPress={() => {}}>
+          <Pressable className="w-[59px] ml-[4px] mt-[8px]" onPress={handleMap}>
             <View className="border border-[#FFC502] rounded h-[26px] flex justify-center items-center">
               <Text className="text-[#FFC502] text-[16px] font-bold">
                 นำทาง
               </Text>
             </View>
           </Pressable>
-          <Pressable className="w-[45px] ml-[4px] mt-[8px]" onPress={() => {}}>
+          <Pressable
+            className="w-[45px] ml-[4px] mt-[8px]"
+            onPress={onPressSkip}
+          >
             <View className="border border-[#FFC502] rounded h-[26px] flex justify-center items-center">
               <Text className="text-[#FFC502] text-[16px] font-bold">ข้าม</Text>
             </View>
