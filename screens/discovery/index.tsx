@@ -52,6 +52,9 @@ const Discovery = ({ navigation }: Props) => {
       if (search !== "") {
         setStatus(LOADING);
         getSearchData();
+      } else {
+        setStatus(LOADING);
+        getRecommend();
       }
     }, 1000);
 
