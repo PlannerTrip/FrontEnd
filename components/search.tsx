@@ -8,18 +8,22 @@ const SearchCustom = ({
   placeholder,
   search,
   setSearch,
+  showArrow = true,
 }: {
-  handleGoBack: () => void;
+  handleGoBack?: () => void;
   placeholder: string;
   search: string;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
+  showArrow?: boolean;
 }) => {
   return (
     <View className=" flex flex-row items-center  flex-grow">
       {/* back */}
-      <Pressable className="w-[30px]" onPress={handleGoBack}>
-        <ArrowLeft />
-      </Pressable>
+      {showArrow && (
+        <Pressable className="w-[30px]" onPress={handleGoBack}>
+          <ArrowLeft />
+        </Pressable>
+      )}
 
       {/* input */}
       <TextInput
@@ -31,7 +35,7 @@ const SearchCustom = ({
         }}
       />
 
-      <View className="absolute left-[40px]">
+      <View className={`absolute ${showArrow ? "left-[40px]" : "left-[10px]"}`}>
         <Icon
           fill={"#BFBFBF"}
           style={{ width: 20, height: 20 }}

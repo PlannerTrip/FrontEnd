@@ -193,6 +193,7 @@ const PlaceDiscovery = ({ route, navigation }: Props) => {
         }}
         className="bg-[#FFF] h-[100%] flex-col"
       >
+
         <View className="h-[80px] items-end px-[16px] pt-[16px] bg-[#FFF]  flex-row justify-between">
           {displaySearch ? (
             <View className="pb-[12px] w-[100%]">
