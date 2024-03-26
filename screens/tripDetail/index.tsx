@@ -29,6 +29,13 @@ import TextTitle from "../../components/tripCreate/TextTitle";
 import { changeDateFormat2, distanceTwoPoint } from "../../utils/function";
 import MiniProfileCustom from "../../components/miniProfile";
 import PlanCard from "../../components/tripDetail/planCard";
+import BackgroundModal from "../../components/backgroundModal";
+import ConfirmModal from "../../components/confirmModal";
+
+import Close from "../../assets/modal/closeCircle.svg";
+import Check from "../../assets/modal/checkCircle.svg";
+import Bin from "../../assets/tripPlanner/bin.svg";
+import ArrowLeft from "../../assets/invitation/Arrow_left.svg";
 
 type Props = NativeStackScreenProps<StackParamList, "tripDetail">;
 
@@ -44,14 +51,17 @@ const TripDetail = ({ route, navigation }: Props) => {
   // ====================== useState======================
 
   const [owner, setOwner] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({
-    type: "leave",
+
+  const [successModal, setSuccessModal] = useState({
     display: false,
-    title: <></>,
-    confirmTitle: "",
+    name: "",
   });
-  const [displaySuccessModal, setDisplaySuccessModal] = useState(false);
-  const [displayDaySelectModal, setDisplayDaySelectModal] = useState(false);
+  const [modalConfirmUndo, setModalConfirmUndo] = useState({
+    display: false,
+    prevPlace: "",
+  });
+
+  const [displayModalDelete, setDisplayModalDelete] = useState(false);
 
   const [status, setStatus] = useState(LOADING);
   const [plan, setPlan] = useState<Plan[]>([]);
@@ -64,6 +74,12 @@ const TripDetail = ({ route, navigation }: Props) => {
   const [member, setMember] = useState<Member[]>([]);
   const [date, setDate] = useState({ start: "", end: "" });
   const [currentPlace, setCurrentPlace] = useState("");
+  const [prevPlaceStatus, setPrevPlaceStatus] = useState("");
+
+  const [displayModalCheckInFail, setDisplayModalCheckInFail] = useState({
+    display: false,
+    name: "",
+  });
 
   // ====================== useFocusEffect ======================
 
@@ -86,16 +102,39 @@ const TripDetail = ({ route, navigation }: Props) => {
   );
 
   useEffect(() => {
-    const newPlan = plan.map((dailyPlan) => ({
-      day: dailyPlan.day,
-      date: dailyPlan.date,
-      dailyPlan: changeFormatToPlan(dailyPlan),
+    let flatPlan: PlaceCard[] = [];
+    let newPlan = plan.map((dailyPlan) => {
+      flatPlan.push(...changeFormatToPlan(dailyPlan));
+
+      return {
+        day: dailyPlan.day,
+        date: dailyPlan.date,
+        dailyPlan: changeFormatToPlan(dailyPlan),
+      };
+    });
+    newPlan = newPlan.map((information) => ({
+      ...information,
+      dailyPlan: information.dailyPlan.map((info) =>
+        findPrevPlaceAndNextPlace(flatPlan, info.id, info),
+      ),
     }));
     setDisplayPlan(newPlan);
-
   }, [plan]);
 
   // ====================== function ======================
+
+  const onPressConfirm = async () => {
+    try {
+      await axios.put(
+        `${API_URL}/trip/undo`,
+        { tripId, prevPlace: modalConfirmUndo.prevPlace },
+        { headers: { Authorization: token } },
+      );
+      setModalConfirmUndo({ display: false, prevPlace: "" });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleSocket = (socket: Socket) => {
     socket.on("connect", () => {
@@ -107,6 +146,62 @@ const TripDetail = ({ route, navigation }: Props) => {
     socket.on("connect_error", (error) => {
       console.log("Socket Error", error.message);
     });
+
+    socket.on("tripDone", () => {
+      console.log("done");
+      setCurrentPlace("");
+      setPrevPlaceStatus("");
+    });
+
+    socket.on("updateStage", (data: { stage: string }) => {
+      navigation.navigate("tab");
+    });
+
+    socket.on(
+      "updateCurrentPlace",
+      ({ currentPlace, type }: { currentPlace: string; type: string }) => {
+        setCurrentPlace(currentPlace);
+        setPrevPlaceStatus(type);
+      },
+    );
+  };
+
+  const findPrevPlaceAndNextPlace = (
+    flatPlan: PlaceCard[],
+    id: string,
+    info: PlaceCard,
+  ) => {
+    const findNext = (index: number) => {
+      if (index >= flatPlan.length) {
+        return "last";
+      } else {
+        if (flatPlan[index].type === "place") {
+          return flatPlan[index].id;
+        } else {
+          return findNext(index + 1);
+        }
+      }
+    };
+
+    const findPrev = (index: number) => {
+      if (index < 0) {
+        return "first";
+      } else {
+        if (flatPlan[index].type === "place") {
+          return flatPlan[index].id;
+        } else {
+          return findPrev(index - 1);
+        }
+      }
+    };
+
+    const index = flatPlan.findIndex((obj) => obj.id === id);
+
+    return {
+      ...info,
+      nextPlace: findNext(index + 1),
+      prevPlace: findPrev(index - 1),
+    };
   };
 
   const getInformation = async () => {
@@ -126,6 +221,7 @@ const TripDetail = ({ route, navigation }: Props) => {
       setMember(response.data.information.member);
       setDate(response.data.information.date);
       setPlan(response.data.plan);
+      setPrevPlaceStatus(response.data.information.prevPlaceStatus);
       setStatus(SUCCESS);
 
       setCurrentPlace(response.data.information.currentPlace);
@@ -223,6 +319,26 @@ const TripDetail = ({ route, navigation }: Props) => {
 
   const onPressBack = async () => {
     try {
+      navigation.goBack();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.post(
+        `${API_URL}/trip/stage`,
+        {
+          tripId,
+          stage: "delete",
+        },
+        {
+          headers: {
+            authorization: token,
+          },
+        },
+      );
     } catch (err) {
       console.log(err);
     }
@@ -238,8 +354,30 @@ const TripDetail = ({ route, navigation }: Props) => {
         }}
         className="bg-[#FFF] h-[100%]"
       >
-        <Header onPressBack={onPressBack} title="" />
-
+        {/* header*/}
+        <View
+          className="h-[80px] p-[16px] bg-[#FFF]  flex-row items-end "
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 2,
+          }}
+        >
+          <Pressable onPress={onPressBack}>
+            <ArrowLeft />
+          </Pressable>
+          <Text className="text-[24px] font-bold h-[40px] ml-[8px]"></Text>
+          {owner && (
+            <View className="flex-row justify-end items-center grow">
+              <Bin
+                onPress={() => {
+                  setDisplayModalDelete(true);
+                }}
+              />
+            </View>
+          )}
+        </View>
         {/* content */}
         {status === LOADING ? (
           <View
@@ -285,6 +423,7 @@ const TripDetail = ({ route, navigation }: Props) => {
             <View className=" flex items-center">
               {displayPlan.map((dailyPlan, index) => (
                 <PlanCard
+                  prevPlaceStatus={prevPlaceStatus}
                   currentPlace={currentPlace}
                   index={index}
                   owner={owner}
@@ -293,12 +432,94 @@ const TripDetail = ({ route, navigation }: Props) => {
                   token={token}
                   date={dailyPlan.date}
                   day={dailyPlan.day}
+                  setDisplayModalCheckInFail={setDisplayModalCheckInFail}
+                  setSuccessModal={setSuccessModal}
+                  setModalConfirmUndo={setModalConfirmUndo}
                 />
               ))}
             </View>
           </ScrollView>
         )}
       </View>
+      {displayModalCheckInFail.display && (
+        <BackgroundModal>
+          <ConfirmModal
+            title={
+              <View className="flex flex-col justify-center items-center">
+                <Close />
+                <Text className="mt-[8px] font-bold text-[16px] leading-[24px]">
+                  ไม่สามารถเช็คอินได้
+                </Text>
+
+                <Text className="text-[12px] leading-[18px]">
+                  คุณต้องอยู่ใกล้
+                </Text>
+                <Text className="text-[12px] leading-[18px]">
+                  {displayModalCheckInFail.name}
+                </Text>
+                <Text className="text-[12px] leading-[18px]">
+                  ในระยะไม่เกิน 3 กิโลเมตร
+                </Text>
+              </View>
+            }
+            cancelTitle={"ปิด"}
+            onPressCancel={() => {
+              setDisplayModalCheckInFail({ display: false, name: "" });
+            }}
+            confirm={false}
+          />
+        </BackgroundModal>
+      )}
+      {successModal.display && (
+        <View className="absolute z-[100] top-0 bg-[#0000008C] w-[100%] h-[100vh] flex-col justify-center items-center ">
+          <ConfirmModal
+            title={
+              <View className="flex flex-col justify-center items-center">
+                <Check />
+                <Text className="mt-[8px] font-bold text-[16px] leading-[24px]">
+                  เช็คอินสำเร็จ
+                </Text>
+                <Text className=" text-[12px] leading-[18px]">
+                  {successModal.name}
+                </Text>
+              </View>
+            }
+            cancelTitle={"ปิด"}
+            onPressCancel={() => {
+              setSuccessModal({ display: false, name: "" });
+            }}
+            confirm={false}
+          />
+        </View>
+      )}
+      {modalConfirmUndo.display && (
+        <BackgroundModal>
+          <ConfirmModal
+            confirmTitle="ย้อนกลับ"
+            title={
+              <Text className="font-bold">
+                ต้องการที่จะย้อนกลับไปสถานที่เดิม
+              </Text>
+            }
+            onPressConfirm={onPressConfirm}
+            onPressCancel={() => {
+              setModalConfirmUndo({ display: false, prevPlace: "" });
+            }}
+          />
+        </BackgroundModal>
+      )}
+      {displayModalDelete && (
+        <BackgroundModal>
+          <ConfirmModal
+            confirmTitle="ลบ"
+            title={<Text className="font-bold">ยืนยันที่จะลบทริป</Text>}
+            onPressConfirm={handleDelete}
+            onPressCancel={() => {
+              setDisplayModalDelete(false);
+            }}
+          />
+        </BackgroundModal>
+      )}
     </>
   );
 };
