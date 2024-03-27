@@ -75,7 +75,7 @@ const InviteVerify = ({ route, navigation }: Props) => {
         navigation.navigate("tripSummary", {
           tripId: tripId,
         });
-      } else if (currentStage === "finish") {
+      } else if (currentStage === "finish" || currentStage === "delete") {
         navigation.navigate("tab");
       } else {
         navigation.navigate("stopSelect", {

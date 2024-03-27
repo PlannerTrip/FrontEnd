@@ -10,6 +10,8 @@ import axios from "axios";
 import CoverImage from "../../assets/defaultCoverImage.svg";
 
 const LocationCard = ({ place }: { place: any }) => {
+  const [show, setShow] = useState(true);
+
   const [data, setData] = useState({
     placeName: "",
     coverImg: [],
@@ -47,6 +49,7 @@ const LocationCard = ({ place }: { place: any }) => {
       if (axios.isAxiosError(error) && error.response) {
         console.log(error.response.data);
       }
+      setShow(false);
     }
   };
 
@@ -56,6 +59,8 @@ const LocationCard = ({ place }: { place: any }) => {
       getPlaceInformation();
     }, []),
   );
+
+  if (!show) return <></>;
 
   return (
     <View className={`h-[144px] p-[8px]  flex flex-row ${widthTruncate} `}>

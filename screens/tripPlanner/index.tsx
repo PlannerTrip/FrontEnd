@@ -67,7 +67,7 @@ const TripPlaner = ({ navigation }: Props) => {
       style={{
         paddingTop: insets.top,
       }}
-      className=" bg-white "
+      className=" bg-white h-[100%]"
     >
       <ScrollView showsVerticalScrollIndicator={false}>
         <View className="flex items-center">
