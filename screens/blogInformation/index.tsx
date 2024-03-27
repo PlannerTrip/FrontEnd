@@ -108,7 +108,7 @@ const BlogInformation = ({ route, navigation }: Props) => {
       setLoadingButton(true);
       const response = await axios.post(
         `${API_URL}/blog/copyTrip`,
-        { tripId: data?.tripIdReference },
+        { blogId: blogId },
         {
           headers: {
             authorization: token,
